@@ -114,7 +114,7 @@ export const inputCls = (err: boolean) =>
     err ? "border-destructive" : "border-input"
   }`;
 
-function Campo({ id, label, ayuda, error, children }: { id: string; label: string; ayuda?: string; error?: string; children: React.ReactNode }) {
+function Campo({ id, label, ayuda, error, children }: { id: string; label: string; ayuda?: string | undefined; error?: string | undefined; children: React.ReactNode }) {
   return (
     <div className="space-y-2">
       <label htmlFor={id} className="block text-base font-bold">{label}</label>

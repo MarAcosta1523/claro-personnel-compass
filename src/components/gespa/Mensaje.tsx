@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 type Props = {
   tipo: "exito" | "error" | "suspendida";
   titulo: string;
-  detalle?: string;
+  detalle?: string | undefined;
   onCerrar?: () => void;
 };
 
