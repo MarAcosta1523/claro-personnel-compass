@@ -129,3 +129,54 @@ export const IconNota = (p: P) => (
     <path d="M9 9h6M9 13h6M9 17h3" />
   </Base>
 );
+
+export const IconCalendario = (p: P) => (
+  <Base {...p}>
+    <rect x="3.5" y="5" width="17" height="15" rx="2" />
+    <path d="M3.5 10h17M8 3v4M16 3v4" />
+    <path d="m9 15 2 2 4-4" />
+  </Base>
+);
+
+export const IconCopia = (p: P) => (
+  <Base {...p}>
+    <ellipse cx="12" cy="6" rx="7.5" ry="3" />
+    <path d="M4.5 6v6c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3V6" />
+    <path d="M4.5 12v6c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3v-6" />
+  </Base>
+);
+
+export const IconRestaurar = (p: P) => (
+  <Base {...p}>
+    <path d="M20.5 12a8.5 8.5 0 1 1-2.5-6" />
+    <path d="M21 3v4h-4" />
+    <path d="M12 8v5M9.5 10.5 12 13l2.5-2.5" />
+  </Base>
+);
+
+export const IconBuscar = (p: P) => (
+  <Base {...p}>
+    <circle cx="11" cy="11" r="6.5" />
+    <path d="m20 20-4.4-4.4" />
+  </Base>
+);
+
+export const IconMas = (p: P) => (
+  <Base {...p}>
+    <path d="M12 5v14M5 12h14" />
+  </Base>
+);
+
+export const IconInicio = (p: P) => (
+  <Base {...p}>
+    <path d="M4 11 12 4l8 7" />
+    <path d="M6 9.5V20h12V9.5" />
+  </Base>
+);
+
+export const IconConsultar = (p: P) => (
+  <Base {...p}>
+    <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" />
+    <circle cx="12" cy="12" r="3" />
+  </Base>
+);
