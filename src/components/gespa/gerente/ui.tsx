@@ -165,5 +165,5 @@ export function Aviso({ icono, children, tono = "neutro" }: { icono: ReactNode; 
   );
 }
 
-export const thCls = "sticky top-0 bg-muted px-4 py-3 text-left text-sm font-bold uppercase tracking-wide text-muted-foreground";
-export const tdCls = "px-4 py-3 text-[15px]";
+export const thCls = "sticky top-0 bg-muted px-3 py-3 text-left text-sm font-bold uppercase tracking-wide text-muted-foreground";
+export const tdCls = "px-3 py-2.5 text-[15px]";

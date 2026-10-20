@@ -55,7 +55,7 @@ export function PanelGerente({ cuenta, onSalir }: { cuenta: Cuenta; onSalir: () 
       </header>
 
       <div className="flex flex-1">
-        <nav aria-label="Menú principal" className="flex w-64 shrink-0 flex-col gap-1 border-r-2 bg-card p-3">
+        <nav aria-label="Menú principal" className="flex w-56 shrink-0 flex-col gap-1 border-r-2 bg-card p-3">
           <ItemMenu activo={seccion === "inicio"} onClick={() => ir("inicio")} icono={<IconInicio size={22} />}>Inicio</ItemMenu>
           <p className="mt-3 px-3 pb-1 text-sm font-bold uppercase tracking-wide text-muted-foreground">Gestión</p>
           {MENU.map((m) => (
@@ -69,7 +69,7 @@ export function PanelGerente({ cuenta, onSalir }: { cuenta: Cuenta; onSalir: () 
           </div>
         </nav>
 
-        <main className="min-w-0 flex-1 px-8 py-6">
+        <main className="min-w-0 flex-1 px-6 py-6">
           {msg && <div className="mb-5"><Mensaje tipo={msg.tipo} titulo={msg.titulo} detalle={msg.detalle} onCerrar={() => setMsg(null)} /></div>}
           {seccion === "inicio" && (
             <div className="space-y-6">

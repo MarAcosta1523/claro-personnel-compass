@@ -91,7 +91,7 @@ export function Asistencias({ fichas, asistencias, setAsistencias, correcciones,
       ) : regs.length === 0 ? (
         <Vacio icono={<IconCalendario size={40} />} titulo="No se encontraron registros para la persona y el período seleccionados" detalle="Probá con otro período o con «Todas las fichas»." />
       ) : (
-        <div className="grid grid-cols-[1fr_280px] gap-6">
+        <div className="grid grid-cols-[1fr_220px] gap-5">
           <div className="min-w-0 space-y-3">
             {incompletos.size > 0 && (
               <Aviso tono="aviso" icono={<IconAlerta size={18} />}>
@@ -132,7 +132,7 @@ export function Asistencias({ fichas, asistencias, setAsistencias, correcciones,
           <aside className="space-y-4">
             <div className="rounded-xl bg-primary p-5 text-primary-foreground">
               <p className="text-[15px] opacity-80">Total de horas trabajadas</p>
-              <p className="mt-1 font-mono text-4xl font-bold">{fmtHoras(minutos)}</p>
+              <p className="mt-1 font-mono text-3xl font-bold">{fmtHoras(minutos)}</p>
               <p className="mt-2 text-sm opacity-80">{isoAFecha(consulta.desde)} al {isoAFecha(consulta.hasta)} · {consulta.persona === "todas" ? "Todas las fichas" : nombre(Number(consulta.persona))}</p>
             </div>
             <p className="text-sm text-muted-foreground">Solo se suman los pares entrada–salida completos. No se infieren ausencias.</p>
