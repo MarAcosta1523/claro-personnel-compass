@@ -5,7 +5,7 @@ import { IconBuscar, IconCerrar } from "../icons";
 type BtnVar = "primario" | "secundario" | "peligro" | "fantasma";
 export function Boton({
   variante = "secundario", icono, children, className, cargando, ...rest
-}: React.ButtonHTMLAttributes<HTMLButtonElement> & { variante?: BtnVar; icono?: ReactNode; cargando?: boolean }) {
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & { variante?: BtnVar; icono?: ReactNode | undefined; cargando?: boolean | undefined }) {
   return (
     <button
       {...rest}
