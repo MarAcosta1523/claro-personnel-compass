@@ -86,7 +86,7 @@ export function InicioPersonal({ cuenta, onSalir }: { cuenta: Cuenta; onSalir: (
             <p className="font-mono text-6xl font-bold tabular-nums tracking-tight" aria-live="off">
               {ahora ? fmtHora(ahora, true) : "--:--:--"}
             </p>
-            <p className="mt-1 text-xl capitalize">{ahora ? fmtFecha(ahora) : "\u00a0"}</p>
+            <p className="mt-1 text-xl first-letter:uppercase">{ahora ? fmtFecha(ahora) : "\u00a0"}</p>
           </div>
 
           {resultado && <Mensaje tipo={resultado.tipo} titulo={resultado.titulo} detalle={resultado.detalle} onCerrar={() => setResultado(null)} />}
