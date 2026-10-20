@@ -1,0 +1,213 @@
+import { useEffect, useState } from "react";
+import logo from "@/assets/logo-gespa.png";
+import { fmtCorta, fmtFecha, fmtHora, type Cuenta, type Registro, type Tipo } from "./data";
+import { IconEntrada, IconHistorial, IconNota, IconPerfil, IconSalida } from "./icons";
+import { Mensaje } from "./Mensaje";
+import { cn } from "@/lib/utils";
+
+type Resultado = { tipo: "exito" | "error"; titulo: string; detalle: string } | null;
+
+export function InicioPersonal({ cuenta, onSalir }: { cuenta: Cuenta; onSalir: () => void }) {
+  const [ahora, setAhora] = useState<Date | null>(null);
+  const [tipo, setTipo] = useState<Tipo | null>(null);
+  const [obs, setObs] = useState("");
+  const [ultimo, setUltimo] = useState<Registro | null>(cuenta.ultimo);
+  const [resultado, setResultado] = useState<Resultado>(null);
+  const [procesando, setProcesando] = useState(false);
+
+  useEffect(() => {
+    setAhora(new Date());
+    const t = setInterval(() => setAhora(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
+
+  const confirmar = () => {
+    if (!tipo) return;
+    setProcesando(true);
+    setResultado(null);
+    setTimeout(() => {
+      setProcesando(false);
+      if (ultimo && ultimo.tipo === tipo) {
+        setResultado({
+          tipo: "error",
+          titulo: "No se pudo registrar",
+          detalle:
+            tipo === "entrada"
+              ? "Ya tenés una entrada sin salida. Registrá primero la salida o avisale al Gerente."
+              : "Ya registraste la salida. Para volver a salir, primero registrá una entrada.",
+        });
+        return;
+      }
+      if (!ultimo && tipo === "salida") {
+        setResultado({ tipo: "error", titulo: "No se pudo registrar", detalle: "Todavía no tenés una entrada registrada. Registrá primero la entrada." });
+        return;
+      }
+      const nuevo = { tipo, fecha: new Date() };
+      setUltimo(nuevo);
+      setResultado({
+        tipo: "exito",
+        titulo: "Asistencia registrada con éxito",
+        detalle: `${tipo === "entrada" ? "Entrada" : "Salida"} a las ${fmtHora(nuevo.fecha)} del ${fmtCorta(nuevo.fecha)}.`,
+      });
+      setTipo(null);
+      setObs("");
+    }, 800);
+  };
+
+  return (
+    <div className="flex min-h-screen flex-col">
+      <header className="flex h-16 items-center justify-between bg-topbar px-8 text-topbar-foreground">
+        <div className="flex items-center gap-3">
+          <img src={logo} alt="Punto de la Suerte" className="h-10 w-auto" />
+          <span className="text-lg font-bold">GESPA</span>
+          <span className="text-base opacity-60">· Punto de la Suerte</span>
+        </div>
+        <div className="flex items-center gap-5">
+          <div className="flex items-center gap-2.5">
+            <IconPerfil size={22} />
+            <div className="leading-tight">
+              <p className="text-base font-bold">{cuenta.nombre}</p>
+              <p className="text-sm opacity-70">Personal</p>
+            </div>
+          </div>
+          <button
+            onClick={onSalir}
+            className="flex h-11 items-center gap-2 rounded-lg border-2 border-topbar-foreground/40 px-4 text-base font-bold hover:bg-topbar-foreground/10 focus-visible:outline-2 focus-visible:outline-topbar-foreground"
+          >
+            <IconSalida size={20} /> Cerrar sesión
+          </button>
+        </div>
+      </header>
+
+      <main className="mx-auto grid w-full max-w-6xl flex-1 grid-cols-[1fr_340px] gap-8 px-8 py-8">
+        <section className="space-y-6">
+          <div>
+            <p className="text-lg text-muted-foreground">Hola, {cuenta.nombre.split(" ")[0]}</p>
+            <p className="font-mono text-6xl font-bold tabular-nums tracking-tight" aria-live="off">
+              {ahora ? fmtHora(ahora, true) : "--:--:--"}
+            </p>
+            <p className="mt-1 text-xl first-letter:uppercase">{ahora ? fmtFecha(ahora) : "\u00a0"}</p>
+          </div>
+
+          {resultado && <Mensaje tipo={resultado.tipo} titulo={resultado.titulo} detalle={resultado.detalle} onCerrar={() => setResultado(null)} />}
+
+          <fieldset disabled={procesando} className="space-y-5">
+            <legend className="mb-3 flex items-center gap-2 text-base font-bold">
+              <Paso n={1} activo={!tipo} /> Elegí qué querés registrar
+            </legend>
+            <div className="grid grid-cols-2 gap-4" role="radiogroup" aria-label="Tipo de registro">
+              <BotonGrande sel={tipo === "entrada"} onClick={() => setTipo("entrada")} icono={<IconEntrada size={40} />} titulo="Registrar entrada" sub="Cuando llegás" />
+              <BotonGrande sel={tipo === "salida"} onClick={() => setTipo("salida")} icono={<IconSalida size={40} />} titulo="Registrar salida" sub="Cuando te vas" />
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="obs" className="flex items-center gap-2 text-base font-bold">
+                <IconNota size={20} /> Observación <span className="font-normal text-muted-foreground">(opcional)</span>
+              </label>
+              <input
+                id="obs"
+                value={obs}
+                maxLength={120}
+                onChange={(e) => setObs(e.target.value)}
+                placeholder="Ej.: llegué tarde por un corte de colectivo"
+                className="h-12 w-full rounded-lg border-2 border-input bg-card px-4 text-base outline-none focus:border-ring focus:ring-3 focus:ring-ring/20"
+              />
+            </div>
+
+            <div className="flex items-center gap-4">
+              <button
+                onClick={confirmar}
+                disabled={!tipo || procesando}
+                className="flex h-14 min-w-64 items-center justify-center gap-2 rounded-lg bg-primary px-8 text-lg font-bold text-primary-foreground hover:opacity-90 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <Paso n={2} activo={!!tipo} invert />
+                {procesando ? "Registrando…" : "Confirmar"}
+              </button>
+              <p className="text-[15px] text-muted-foreground">
+                {tipo ? `Vas a registrar tu ${tipo} con la hora actual.` : "Primero elegí entrada o salida."}
+              </p>
+            </div>
+          </fieldset>
+        </section>
+
+        <aside className="space-y-4">
+          <div className="rounded-xl border-2 bg-card p-5">
+            <h2 className="flex items-center gap-2 text-base font-bold">
+              <IconHistorial size={22} /> Tu último registro
+            </h2>
+            {ultimo ? (
+              <dl className="mt-4 space-y-3 text-base">
+                <Fila k="Tipo">
+                  <span className="inline-flex items-center gap-1.5 rounded-md bg-secondary px-2.5 py-1 font-bold">
+                    {ultimo.tipo === "entrada" ? <IconEntrada size={18} /> : <IconSalida size={18} />}
+                    {ultimo.tipo === "entrada" ? "Entrada" : "Salida"}
+                  </span>
+                </Fila>
+                <Fila k="Fecha">{fmtCorta(ultimo.fecha)}</Fila>
+                <Fila k="Hora"><span className="font-mono font-bold">{fmtHora(ultimo.fecha)}</span></Fila>
+              </dl>
+            ) : (
+              <div className="mt-4 rounded-lg border-2 border-dashed p-4 text-center">
+                <p className="text-base font-bold">Todavía no tenés registros</p>
+                <p className="mt-1 text-[15px] text-muted-foreground">Empezá registrando tu entrada.</p>
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-xl bg-muted p-5 text-[15px]">
+            <p className="font-bold">¿Cómo se usa?</p>
+            <ol className="mt-2 list-decimal space-y-1 pl-5">
+              <li>Tocá <b>Registrar entrada</b> o <b>Registrar salida</b>.</li>
+              <li>Si querés, escribí una observación.</li>
+              <li>Tocá <b>Confirmar</b>.</li>
+            </ol>
+            <p className="mt-3 text-muted-foreground">Al terminar, cerrá sesión para que nadie use tu cuenta.</p>
+          </div>
+        </aside>
+      </main>
+    </div>
+  );
+}
+
+function Paso({ n, activo, invert }: { n: number; activo: boolean; invert?: boolean }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold",
+        invert ? "bg-primary-foreground text-primary" : activo ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground",
+      )}
+      aria-hidden
+    >
+      {n}
+    </span>
+  );
+}
+
+function BotonGrande({ sel, onClick, icono, titulo, sub }: { sel: boolean; onClick: () => void; icono: React.ReactNode; titulo: string; sub: string }) {
+  return (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={sel}
+      onClick={onClick}
+      className={cn(
+        "relative flex h-40 flex-col items-center justify-center gap-3 rounded-xl border-2 text-center transition focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring",
+        sel ? "border-primary bg-primary text-primary-foreground shadow-lg" : "border-input bg-card hover:border-primary hover:bg-accent",
+      )}
+    >
+      {sel && <span className="absolute right-3 top-3 rounded-md bg-primary-foreground px-2 py-0.5 text-sm font-bold text-primary">Elegido ✓</span>}
+      {icono}
+      <span className="text-2xl font-bold">{titulo}</span>
+      <span className={cn("text-[15px]", sel ? "opacity-80" : "text-muted-foreground")}>{sub}</span>
+    </button>
+  );
+}
+
+function Fila({ k, children }: { k: string; children: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between">
+      <dt className="text-muted-foreground">{k}</dt>
+      <dd>{children}</dd>
+    </div>
+  );
+}

@@ -1,24 +1,52 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import { Login } from "@/components/gespa/Login";
+import { InicioPersonal } from "@/components/gespa/InicioPersonal";
+import type { Cuenta } from "@/components/gespa/data";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "GESPA · Inicio de sesión y vista Personal" },
+      { name: "description", content: "Prototipo de GESPA: registro de entradas y salidas del personal de Punto de la Suerte." },
+      { property: "og:title", content: "GESPA · Punto de la Suerte" },
+      { property: "og:description", content: "Prototipo de inicio de sesión y pantalla principal del Personal." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
 function Index() {
+  const [cuenta, setCuenta] = useState<Cuenta | null>(null);
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <div className="min-w-[1366px]">
+      {cuenta ? <InicioPersonal key={cuenta.dni} cuenta={cuenta} onSalir={() => setCuenta(null)} /> : <Login onIngresar={setCuenta} />}
+      <GuiaPrototipo />
+    </div>
+  );
+}
+
+/** Ayuda solo para revisar el prototipo: cuentas de prueba para ver cada estado. */
+function GuiaPrototipo() {
+  const [abierta, setAbierta] = useState(false);
+  return (
+    <div className="fixed bottom-4 left-4 z-50 text-sm">
+      {abierta && (
+        <div className="mb-2 w-80 rounded-lg border-2 bg-card p-4 shadow-xl">
+          <p className="font-bold">Cuentas de prueba (contraseña: Suerte2026!)</p>
+          <ul className="mt-2 space-y-1.5">
+            <li><b className="font-mono">30111222</b> · con último registro</li>
+            <li><b className="font-mono">35444555</b> · sin registros (estado vacío)</li>
+            <li><b className="font-mono">28999000</b> · cuenta suspendida</li>
+          </ul>
+          <p className="mt-2 text-muted-foreground">Otra contraseña muestra el error. Registrar dos veces lo mismo muestra el error de secuencia.</p>
+        </div>
+      )}
+      <button onClick={() => setAbierta(!abierta)} className="rounded-full border-2 bg-card px-4 py-2 font-bold shadow">
+        {abierta ? "Ocultar guía" : "Guía del prototipo"}
+      </button>
     </div>
   );
 }
