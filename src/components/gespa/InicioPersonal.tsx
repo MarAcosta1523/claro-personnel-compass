@@ -4,6 +4,8 @@ import { fmtCorta, fmtFecha, fmtHora, type Cuenta, type Registro, type Tipo } fr
 import { IconEntrada, IconHistorial, IconNota, IconPerfil, IconSalida } from "./icons";
 import { Mensaje } from "./Mensaje";
 import { cn } from "@/lib/utils";
+import { Boton } from "./gerente/ui";
+import { createAttemptTracker } from "./prototype";
 
 type Resultado = { tipo: "exito" | "error"; titulo: string; detalle: string } | null;
 
@@ -14,6 +16,7 @@ export function InicioPersonal({ cuenta, onSalir }: { cuenta: Cuenta; onSalir: (
   const [ultimo, setUltimo] = useState<Registro | null>(cuenta.ultimo);
   const [resultado, setResultado] = useState<Resultado>(null);
   const [procesando, setProcesando] = useState(false);
+  const [fallar] = useState(createAttemptTracker);
 
   useEffect(() => {
     setAhora(new Date());
@@ -33,13 +36,17 @@ export function InicioPersonal({ cuenta, onSalir }: { cuenta: Cuenta; onSalir: (
           titulo: "No se pudo registrar",
           detalle:
             tipo === "entrada"
-              ? "Ya tenés una entrada sin salida. Registrá primero la salida o avisale al Gerente."
-              : "Ya registraste la salida. Para volver a salir, primero registrá una entrada.",
+              ? "No se pudo registrar la entrada. Revisá el registro anterior."
+              : "No se pudo registrar la salida. Revisá el registro anterior.",
         });
         return;
       }
       if (!ultimo && tipo === "salida") {
-        setResultado({ tipo: "error", titulo: "No se pudo registrar", detalle: "Todavía no tenés una entrada registrada. Registrá primero la entrada." });
+        setResultado({ tipo: "error", titulo: "No se pudo registrar", detalle: "No se pudo registrar la salida. Revisá el registro anterior." });
+        return;
+      }
+      if (fallar(tipo)) {
+        setResultado({ tipo: "error", titulo: `No se pudo registrar la ${tipo}`, detalle: "Intentá de nuevo." });
         return;
       }
       const nuevo = { tipo, fecha: new Date() };
@@ -70,12 +77,12 @@ export function InicioPersonal({ cuenta, onSalir }: { cuenta: Cuenta; onSalir: (
               <p className="text-sm opacity-70">Personal</p>
             </div>
           </div>
-          <button
+          <Boton
             onClick={onSalir}
             className="flex h-11 items-center gap-2 rounded-lg border-2 border-topbar-foreground/40 px-4 text-base font-bold hover:bg-topbar-foreground/10 focus-visible:outline-2 focus-visible:outline-topbar-foreground"
           >
             <IconSalida size={20} /> Cerrar sesión
-          </button>
+          </Boton>
         </div>
       </header>
 
@@ -83,7 +90,7 @@ export function InicioPersonal({ cuenta, onSalir }: { cuenta: Cuenta; onSalir: (
         <section className="space-y-6">
           <div>
             <p className="text-lg text-muted-foreground">Hola, {cuenta.nombre.split(" ")[0]}</p>
-            <p className="font-mono text-6xl font-bold tabular-nums tracking-tight" aria-live="off">
+            <p className="font-mono text-6xl font-bold text-primary tabular-nums tracking-tight" aria-live="off">
               {ahora ? fmtHora(ahora, true) : "--:--:--"}
             </p>
             <p className="mt-1 text-xl first-letter:uppercase">{ahora ? fmtFecha(ahora) : "\u00a0"}</p>
@@ -93,7 +100,7 @@ export function InicioPersonal({ cuenta, onSalir }: { cuenta: Cuenta; onSalir: (
 
           <fieldset disabled={procesando} className="space-y-5">
             <legend className="mb-3 flex items-center gap-2 text-base font-bold">
-              <Paso n={1} activo={!tipo} /> Elegí qué querés registrar
+              Asistencia
             </legend>
             <div className="grid grid-cols-2 gap-4" role="radiogroup" aria-label="Tipo de registro">
               <BotonGrande sel={tipo === "entrada"} onClick={() => setTipo("entrada")} icono={<IconEntrada size={40} />} titulo="Registrar entrada" sub="Cuando llegás" />
@@ -115,17 +122,15 @@ export function InicioPersonal({ cuenta, onSalir }: { cuenta: Cuenta; onSalir: (
             </div>
 
             <div className="flex items-center gap-4">
-              <button
+              <Boton
                 onClick={confirmar}
                 disabled={!tipo || procesando}
                 className="flex h-14 min-w-64 items-center justify-center gap-2 rounded-lg bg-primary px-8 text-lg font-bold text-primary-foreground hover:opacity-90 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-40"
               >
-                <Paso n={2} activo={!!tipo} invert />
+
                 {procesando ? "Registrando…" : "Confirmar"}
-              </button>
-              <p className="text-[15px] text-muted-foreground">
-                {tipo ? `Vas a registrar tu ${tipo} con la hora actual.` : "Primero elegí entrada o salida."}
-              </p>
+              </Boton>
+
             </div>
           </fieldset>
         </section>
@@ -154,15 +159,6 @@ export function InicioPersonal({ cuenta, onSalir }: { cuenta: Cuenta; onSalir: (
             )}
           </div>
 
-          <div className="rounded-xl bg-muted p-5 text-[15px]">
-            <p className="font-bold">¿Cómo se usa?</p>
-            <ol className="mt-2 list-decimal space-y-1 pl-5">
-              <li>Tocá <b>Registrar entrada</b> o <b>Registrar salida</b>.</li>
-              <li>Si querés, escribí una observación.</li>
-              <li>Tocá <b>Confirmar</b>.</li>
-            </ol>
-            <p className="mt-3 text-muted-foreground">Al terminar, cerrá sesión para que nadie use tu cuenta.</p>
-          </div>
         </aside>
       </main>
     </div>
@@ -185,21 +181,21 @@ function Paso({ n, activo, invert }: { n: number; activo: boolean; invert?: bool
 
 function BotonGrande({ sel, onClick, icono, titulo, sub }: { sel: boolean; onClick: () => void; icono: React.ReactNode; titulo: string; sub: string }) {
   return (
-    <button
+    <Boton
       type="button"
       role="radio"
       aria-checked={sel}
       onClick={onClick}
       className={cn(
         "relative flex h-40 flex-col items-center justify-center gap-3 rounded-xl border-2 text-center transition focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring",
-        sel ? "border-primary bg-primary text-primary-foreground shadow-lg" : "border-input bg-card hover:border-primary hover:bg-accent",
+        sel ? "border-primary bg-accent text-primary shadow-lg" : "border-input bg-card hover:border-primary hover:bg-accent",
       )}
     >
       {sel && <span className="absolute right-3 top-3 rounded-md bg-primary-foreground px-2 py-0.5 text-sm font-bold text-primary">Elegido ✓</span>}
       {icono}
       <span className="text-2xl font-bold">{titulo}</span>
       <span className={cn("text-[15px]", sel ? "opacity-80" : "text-muted-foreground")}>{sub}</span>
-    </button>
+    </Boton>
   );
 }
 

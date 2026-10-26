@@ -3,6 +3,8 @@ import logo from "@/assets/logo-gespa.png";
 import { CUENTAS, type Cuenta } from "./data";
 import { IconEntrada } from "./icons";
 import { Mensaje } from "./Mensaje";
+import { PasswordInput } from "./PasswordInput";
+import { Boton } from "./gerente/ui";
 
 type Error = { tipo: "error" | "suspendida"; titulo: string; detalle: string } | null;
 
@@ -50,21 +52,21 @@ export function Login({ onIngresar }: { onIngresar: (c: Cuenta) => void }) {
         <div>
           <img src={logo} alt="Logo de Punto de la Suerte" className="mb-8 h-40 w-auto" />
           <h1 className="text-5xl font-bold tracking-tight">GESPA</h1>
-          <p className="mt-3 max-w-sm text-lg opacity-80">Registro de entradas, salidas y horas trabajadas.</p>
+          
         </div>
-        <p className="text-sm opacity-60">Funciona sin Internet · PC del mostrador</p>
+        
       </aside>
 
       <main className="flex items-center justify-center p-12">
         <form onSubmit={enviar} noValidate className="w-full max-w-md space-y-6" aria-busy={cargando}>
           <div>
-            <h2 className="text-3xl font-bold">Iniciá sesión</h2>
-            <p className="mt-2 text-base text-muted-foreground">Con tu DNI y tu contraseña.</p>
+            <h2 className="text-3xl font-bold text-primary">Iniciar sesión</h2>
+            
           </div>
 
           {error && <Mensaje tipo={error.tipo} titulo={error.titulo} detalle={error.detalle} onCerrar={() => setError(null)} />}
 
-          <Campo id="dni" label="DNI" ayuda="Sin puntos. Ej.: 30111222" error={campos.dni}>
+          <Campo id="dni" label="DNI" error={campos.dni}>
             <input
               id="dni"
               inputMode="numeric"
@@ -80,9 +82,8 @@ export function Login({ onIngresar }: { onIngresar: (c: Cuenta) => void }) {
           </Campo>
 
           <Campo id="pass" label="Contraseña" error={campos.pass}>
-            <input
+            <PasswordInput
               id="pass"
-              type="password"
               autoComplete="off"
               value={pass}
               onChange={(e) => setPass(e.target.value)}
@@ -93,16 +94,17 @@ export function Login({ onIngresar }: { onIngresar: (c: Cuenta) => void }) {
             />
           </Campo>
 
-          <button
+          <Boton
+            variante="primario"
             type="submit"
             disabled={cargando}
             className="flex h-14 w-full items-center justify-center gap-3 rounded-lg bg-primary text-lg font-bold text-primary-foreground transition hover:opacity-90 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-wait disabled:opacity-60"
           >
             <IconEntrada />
-            {cargando ? "Ingresando…" : "Ingresar"}
-          </button>
+            {cargando ? "Ingresando…" : "Iniciar sesión"}
+          </Boton>
 
-          <p className="text-[15px] text-muted-foreground">¿Te olvidaste la contraseña? Pedile al Gerente que la cambie.</p>
+          
         </form>
       </main>
     </div>
