@@ -180,3 +180,6 @@ export const IconConsultar = (p: P) => (
     <circle cx="12" cy="12" r="3" />
   </Base>
 );
+
+export const IconOjo = (p: P) => <Base {...p}><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" /><circle cx="12" cy="12" r="3" /></Base>;
+export const IconOjoOculto = (p: P) => <Base {...p}><path d="m3 3 18 18M10.5 5.6A10 10 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a17 17 0 0 1-3 3.7M6.3 6.8A18 18 0 0 0 2.5 12s3.5 6.5 9.5 6.5a10 10 0 0 0 5.2-1.5M10 10a3 3 0 0 0 4 4" /></Base>;

@@ -4,10 +4,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/*
- * Paleta PROVISORIA y neutra. El color institucional y el uso del verde
- * se definen luego con los prototipos: cambiar solo estos tokens.
- */
+/* Discreet petroleum, sage and contextual status colors. */
 
 @theme inline {
   --font-sans: "Atkinson Hyperlegible", system-ui, sans-serif;
@@ -42,30 +39,29 @@
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(0.975 0.002 90);
-  --foreground: oklch(0.2 0.005 90);
+  --radius: 0.5rem;
+  --background: oklch(0.979 0.005 174);
+  --foreground: oklch(0.28 0.025 177);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.2 0.005 90);
-  --primary: oklch(0.27 0.006 90);
+  --primary: oklch(0.495 0.066 189);
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.93 0.003 90);
-  --secondary-foreground: oklch(0.22 0.005 90);
-  --muted: oklch(0.95 0.002 90);
-  --muted-foreground: oklch(0.45 0.006 90);
-  --accent: oklch(0.91 0.004 90);
-  --accent-foreground: oklch(0.2 0.005 90);
-  --destructive: oklch(0.5 0.17 27);
-  --destructive-soft: oklch(0.96 0.025 27);
-  /* Éxito provisorio: neutro oscuro + ícono y texto, sin verde todavía */
-  --success: oklch(0.3 0.01 240);
-  --success-soft: oklch(0.95 0.008 240);
-  --warning: oklch(0.48 0.1 70);
-  --warning-soft: oklch(0.96 0.03 85);
-  --border: oklch(0.86 0.004 90);
-  --input: oklch(0.7 0.005 90);
-  --ring: oklch(0.35 0.01 90);
-  --topbar: oklch(0.24 0.005 90);
+  --secondary: oklch(0.928 0.017 170);
+  --secondary-foreground: oklch(0.38 0.055 184);
+  --muted: oklch(0.954 0.012 170);
+  --muted-foreground: oklch(0.46 0.028 177);
+  --accent: oklch(0.928 0.017 170);
+  --accent-foreground: oklch(0.38 0.055 184);
+  --destructive: oklch(0.553 0.142 32);
+  --destructive-soft: oklch(0.963 0.019 32);
+  --success: oklch(0.529 0.107 153);
+  --success-soft: oklch(0.952 0.025 153);
+  --warning: oklch(0.54 0.112 73);
+  --warning-soft: oklch(0.959 0.035 80);
+  --border: oklch(0.864 0.021 170);
+  --input: oklch(0.707 0.034 177);
+  --ring: oklch(0.495 0.066 189);
+  --topbar: oklch(0.495 0.066 189);
   --topbar-foreground: oklch(0.97 0 0);
 }
 
@@ -77,4 +73,5 @@
     color: var(--color-foreground);
     font-family: var(--font-sans);
   }
+  * { letter-spacing: 0; }
 }

@@ -144,12 +144,12 @@ export function Vacio({ icono, titulo, detalle, accion }: { icono: ReactNode; ti
   );
 }
 
-export function Encabezado({ icono, titulo, descripcion, acciones }: { icono: ReactNode; titulo: string; descripcion: string; acciones?: ReactNode }) {
+export function Encabezado({ icono, titulo, descripcion, acciones }: { icono: ReactNode; titulo: string; descripcion?: string; acciones?: ReactNode }) {
   return (
     <div className="mb-5 flex items-end justify-between gap-4">
       <div>
-        <h1 className="flex items-center gap-3 text-2xl font-bold">{icono}{titulo}</h1>
-        <p className="mt-1 text-[15px] text-muted-foreground">{descripcion}</p>
+        <h1 className="flex items-center gap-3 text-2xl font-bold text-primary">{icono}{titulo}</h1>
+        {descripcion && <p className="mt-1 text-[15px] text-muted-foreground">{descripcion}</p>}
       </div>
       {acciones}
     </div>
