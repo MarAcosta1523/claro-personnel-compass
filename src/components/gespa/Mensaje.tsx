@@ -1,5 +1,6 @@
 import { IconAlerta, IconCandado, IconCerrar, IconCheck } from "./icons";
 import { cn } from "@/lib/utils";
+import { Boton } from "./gerente/ui";
 
 type Props = {
   tipo: "exito" | "error" | "suspendida";
@@ -27,13 +28,14 @@ export function Mensaje({ tipo, titulo, detalle, onCerrar }: Props) {
         {detalle && <p className="mt-0.5 text-[15px] text-foreground">{detalle}</p>}
       </div>
       {onCerrar && (
-        <button
+        <Boton
+          variante="fantasma"
           onClick={onCerrar}
           aria-label="Cerrar mensaje"
-          className="rounded-md p-1.5 text-foreground hover:bg-accent focus-visible:outline-2 focus-visible:outline-ring"
+          className="h-9 w-9 shrink-0 rounded-md px-0 text-foreground hover:bg-accent focus-visible:outline-2 focus-visible:outline-ring"
         >
           <IconCerrar size={20} />
-        </button>
+        </Boton>
       )}
     </div>
   );

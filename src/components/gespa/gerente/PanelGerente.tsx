@@ -8,15 +8,16 @@ import { Usuarios } from "./Usuarios";
 import { Fichas } from "./Fichas";
 import { Asistencias } from "./Asistencias";
 import { Copias } from "./Copias";
+import { Boton } from "./ui";
 
 export type Notificar = (tipo: "exito" | "error", titulo: string, detalle?: string) => void;
 type Seccion = "inicio" | "usuarios" | "fichas" | "asistencias" | "copias";
 
-const MENU: { id: Seccion; t: string; d: string; icono: (s: number) => ReactNode }[] = [
-  { id: "usuarios", t: "Gestionar usuarios", d: "Registrar, consultar, modificar o suspender cuentas.", icono: (s) => <IconPerfil size={s} /> },
-  { id: "fichas", t: "Gestionar fichas de personal", d: "Datos internos de cada persona.", icono: (s) => <IconFicha size={s} /> },
-  { id: "asistencias", t: "Gestionar asistencias", d: "Consultar, modificar o suspender registros.", icono: (s) => <IconCalendario size={s} /> },
-  { id: "copias", t: "Copias de seguridad", d: "Generar o restaurar una copia local.", icono: (s) => <IconCopia size={s} /> },
+const MENU: { id: Seccion; t: string; icono: (s: number) => ReactNode }[] = [
+  { id: "usuarios", t: "Gestionar usuarios", icono: (s) => <IconPerfil size={s} /> },
+  { id: "fichas", t: "Gestionar fichas de personal", icono: (s) => <IconFicha size={s} /> },
+  { id: "asistencias", t: "Gestionar asistencias", icono: (s) => <IconCalendario size={s} /> },
+  { id: "copias", t: "Copias de seguridad", icono: (s) => <IconCopia size={s} /> },
 ];
 
 export function PanelGerente({ cuenta, onSalir }: { cuenta: Cuenta; onSalir: () => void }) {
@@ -48,9 +49,9 @@ export function PanelGerente({ cuenta, onSalir }: { cuenta: Cuenta; onSalir: () 
               <p className="text-sm opacity-70">Gerente</p>
             </div>
           </div>
-          <button onClick={onSalir} className="flex h-11 items-center gap-2 rounded-lg border-2 border-topbar-foreground/40 px-4 text-base font-bold hover:bg-topbar-foreground/10">
+          <Boton variante="fantasma" onClick={onSalir} className="flex h-11 bg-transparent text-topbar-foreground items-center gap-2 rounded-lg border-2 border-topbar-foreground/40 px-4 text-base font-bold hover:bg-topbar-foreground/10">
             <IconSalida size={20} /> Cerrar sesión
-          </button>
+          </Boton>
         </div>
       </header>
 
@@ -75,24 +76,24 @@ export function PanelGerente({ cuenta, onSalir }: { cuenta: Cuenta; onSalir: () 
             <div className="space-y-6">
               <div>
                 <p className="text-lg text-muted-foreground">Hola, {cuenta.nombre.split(" ")[0]}</p>
-                <h1 className="text-3xl font-bold">¿Qué querés hacer?</h1>
+                <h1 className="text-3xl font-bold text-primary">¿Qué querés hacer?</h1>
               </div>
               {pendientes > 0 && (
-                <button onClick={() => ir("asistencias")} className="flex w-full items-center gap-3 rounded-xl border-2 border-warning/50 bg-warning-soft p-4 text-left hover:border-warning">
+                <Boton onClick={() => ir("asistencias")} className="flex h-auto w-full items-center gap-3 rounded-xl border-2 border-warning/50 bg-warning-soft p-4 text-left hover:border-warning">
                   <IconAlerta size={24} className="text-warning" />
-                  <span className="flex-1 text-base"><b>{pendientes} registros de asistencia requieren modificación.</b> Revisalos en «Gestionar asistencias».</span>
+                  <span className="flex-1 text-base"><b>{pendientes} registros de asistencia requieren modificación.</b></span>
                   <span className="font-bold underline underline-offset-4">Revisar</span>
-                </button>
+                </Boton>
               )}
               <div className="grid grid-cols-2 gap-4">
                 {MENU.map((m) => (
-                  <button key={m.id} onClick={() => ir(m.id)} className="group flex items-start gap-4 rounded-xl border-2 bg-card p-6 text-left transition hover:border-primary hover:shadow-md focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring">
+                  <Boton key={m.id} onClick={() => ir(m.id)} className="group h-auto justify-start flex items-start gap-4 rounded-xl border-2 bg-card p-6 text-left transition hover:border-primary hover:shadow-md focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring">
                     <span className="rounded-lg bg-secondary p-3 transition group-hover:bg-primary group-hover:text-primary-foreground">{m.icono(32)}</span>
                     <span>
                       <span className="block text-xl font-bold">{m.t}</span>
-                      <span className="mt-1 block text-[15px] text-muted-foreground">{m.d}</span>
+
                     </span>
-                  </button>
+                  </Boton>
                 ))}
               </div>
               <p className="text-sm text-muted-foreground">Última copia de seguridad: {copias[0] ? `${isoAFecha(copias[0].cuando.slice(0, 10))} ${copias[0].cuando.slice(11)}` : "nunca"}</p>
@@ -110,9 +111,9 @@ export function PanelGerente({ cuenta, onSalir }: { cuenta: Cuenta; onSalir: () 
 
 function ItemMenu({ activo, onClick, icono, children }: { activo: boolean; onClick: () => void; icono: ReactNode; children: ReactNode }) {
   return (
-    <button onClick={onClick} aria-current={activo ? "page" : undefined}
-      className={cn("flex min-h-12 w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-[15px] font-bold transition", activo ? "bg-primary text-primary-foreground" : "hover:bg-accent")}>
+    <Boton variante="fantasma" onClick={onClick} aria-current={activo ? "page" : undefined}
+      className={cn("flex h-auto min-h-12 w-full justify-start whitespace-normal items-center gap-3 rounded-lg px-3 py-2 text-left text-[15px] font-bold transition", activo ? "border-primary bg-accent text-primary" : "hover:bg-accent")}>
       <span className="shrink-0">{icono}</span>{children}
-    </button>
+    </Boton>
   );
 }

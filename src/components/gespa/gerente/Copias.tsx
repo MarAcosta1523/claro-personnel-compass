@@ -4,11 +4,13 @@ import { ahoraIso, isoAFecha, type Copia } from "../data";
 import { IconAlerta, IconCheck, IconCopia, IconRestaurar } from "../icons";
 import { Aviso, Boton, Dialogo, Encabezado, PieAcciones, Vacio, tdCls, thCls } from "./ui";
 import type { Notificar } from "./PanelGerente";
+import { createAttemptTracker } from "../prototype";
 
 const fmt = (c: string) => `${isoAFecha(c.slice(0, 10))} ${c.slice(11)}`;
 
 export function Copias({ copias, setCopias, notificar }: { copias: Copia[]; setCopias: (c: Copia[]) => void; notificar: Notificar }) {
   const [generando, setGenerando] = useState(false);
+  const [fallar] = useState(createAttemptTracker);
   const [archivo, setArchivo] = useState<{ nombre: string; legible: boolean } | null>(null);
   const [errorArchivo, setErrorArchivo] = useState("");
   const [confirmar, setConfirmar] = useState(false);
@@ -19,6 +21,7 @@ export function Copias({ copias, setCopias, notificar }: { copias: Copia[]; setC
     setGenerando(true);
     setTimeout(() => {
       setGenerando(false);
+      if (fallar("generar")) { notificar("error", "No se pudo generar la copia de seguridad", "Intentá de nuevo."); return; }
       const cuando = ahoraIso();
       const c: Copia = { id: Date.now(), cuando, archivo: `gespa_${cuando.replace(" ", "_").replace(":", "")}.bak`, tamano: "1,2 MB" };
       setCopias([c, ...copias]);
@@ -30,7 +33,7 @@ export function Copias({ copias, setCopias, notificar }: { copias: Copia[]; setC
     // Simulación: solo los .bak se consideran legibles.
     const legible = nombre.toLowerCase().endsWith(".bak") && !nombre.toLowerCase().includes("danad");
     setArchivo({ nombre, legible });
-    setErrorArchivo(legible ? "" : "El archivo no se puede leer o no es una copia de GESPA. Elegí un archivo .bak generado por el sistema.");
+    setErrorArchivo(legible ? "" : "No se pudo abrir la copia. Elegí otro archivo.");
   };
 
   const restaurar = () => {
@@ -39,9 +42,9 @@ export function Copias({ copias, setCopias, notificar }: { copias: Copia[]; setC
       setRestaurando(false);
       setConfirmar(false);
       if (archivo?.nombre.includes("2026-10-12")) {
-        notificar("error", "No se pudo restaurar la copia", "La base de datos operativa quedó intacta: no se perdió ningún dato. Probá con otra copia.");
+        notificar("error", "No se pudo restaurar la copia", "Probá con otra copia.");
       } else {
-        notificar("exito", "La copia fue restaurada", `Los datos ahora corresponden a «${archivo?.nombre}».`);
+        notificar("exito", "La copia fue restaurada", `Se restauró «${archivo?.nombre}».`);
       }
       setArchivo(null);
     }, 1400);
@@ -49,17 +52,17 @@ export function Copias({ copias, setCopias, notificar }: { copias: Copia[]; setC
 
   return (
     <>
-      <Encabezado icono={<IconCopia size={28} />} titulo="Copias de seguridad" descripcion="Guardá una copia de los datos en esta PC, o volvé a una copia anterior." />
-      <div className="grid grid-cols-2 gap-6">
-        <section className="space-y-4 rounded-xl border-2 bg-card p-5">
+      <Encabezado icono={<IconCopia size={28} />} titulo="Copias de seguridad" />
+      <div className="grid grid-cols-[minmax(0,3fr)_minmax(0,2fr)] gap-6">
+        <section className="min-w-0 space-y-4">
           <div>
             <h2 className="flex items-center gap-2 text-lg font-bold"><IconCopia size={22} />Generar copia</h2>
-            <p className="mt-1 text-[15px] text-muted-foreground">Recomendado: al cerrar la agencia, una vez por semana como mínimo.</p>
+            
           </div>
           <Boton variante="primario" icono={<IconCopia size={22} />} onClick={generar} cargando={generando} className="w-full">{generando ? "Generando copia…" : "Generar copia de seguridad"}</Boton>
           <h3 className="pt-2 text-base font-bold">Copias generadas</h3>
           {copias.length === 0 ? (
-            <Vacio icono={<IconCopia size={36} />} titulo="Todavía no hay copias" detalle="Generá la primera con el botón de arriba." />
+            <Vacio icono={<IconCopia size={36} />} titulo="Todavía no hay copias"  />
           ) : (
             <div className="max-h-72 overflow-auto rounded-lg border-2">
               <table className="w-full">
@@ -70,7 +73,7 @@ export function Copias({ copias, setCopias, notificar }: { copias: Copia[]; setC
                       <td className={cn(tdCls, "font-mono font-bold")}>{fmt(c.cuando)}</td>
                       <td className={cn(tdCls, "font-mono text-sm")}>{c.archivo}</td>
                       <td className={tdCls}>{c.tamano}</td>
-                      <td className={tdCls}><button onClick={() => elegir(c.archivo)} className="text-sm font-bold underline underline-offset-4 hover:no-underline">Usar para restaurar</button></td>
+                      <td className={tdCls}><Boton variante="fantasma" onClick={() => elegir(c.archivo)} className="h-auto px-1 text-sm" title="Usar para restaurar" aria-label={`Usar ${c.archivo} para restaurar`}><IconRestaurar size={20} /></Boton></td>
                     </tr>
                   ))}
                 </tbody>
@@ -79,44 +82,40 @@ export function Copias({ copias, setCopias, notificar }: { copias: Copia[]; setC
           )}
         </section>
 
-        <section className="space-y-4 rounded-xl border-2 bg-card p-5">
+        <section className="min-w-0 space-y-4">
           <div>
             <h2 className="flex items-center gap-2 text-lg font-bold"><IconRestaurar size={22} />Restaurar desde una copia</h2>
-            <p className="mt-1 text-[15px] text-muted-foreground">Reemplaza los datos actuales por los de la copia elegida.</p>
+            
           </div>
           <ol className="space-y-4">
             <li className="space-y-2">
-              <p className="font-bold">1. Elegí el archivo de copia</p>
+              <p className="font-bold">Archivo de copia</p>
               <input ref={input} type="file" accept=".bak" className="hidden" onChange={(e) => e.target.files?.[0] && elegir(e.target.files[0].name)} />
               <Boton onClick={() => input.current?.click()} className="w-full">Buscar archivo en esta PC…</Boton>
               {archivo && (
                 <div className={cn("flex items-start gap-2 rounded-lg border-2 px-3 py-2 text-[15px]", archivo.legible ? "border-success/40 bg-success-soft" : "border-destructive bg-destructive-soft")}>
                   {archivo.legible ? <IconCheck size={20} className="shrink-0 text-success" /> : <IconAlerta size={20} className="shrink-0 text-destructive" />}
                   <div>
-                    <p className="font-mono font-bold">{archivo.nombre}</p>
-                    <p className={archivo.legible ? "" : "font-bold text-destructive"}>{archivo.legible ? "Archivo válido y legible." : errorArchivo}</p>
+                    <p className="break-all font-mono font-bold">{archivo.nombre}</p>
+                    {!archivo.legible && <p role="alert" className="font-bold text-destructive">{errorArchivo}</p>}
                   </div>
                 </div>
               )}
             </li>
             <li className="space-y-2">
-              <p className="font-bold">2. Restaurá</p>
+              <p className="font-bold">Restaurar</p>
               <Boton variante="peligro" icono={<IconRestaurar size={22} />} disabled={!archivo?.legible} onClick={() => setConfirmar(true)} className="w-full">Restaurar copia</Boton>
-              {!archivo?.legible && <p className="text-sm text-muted-foreground">Se habilita cuando elegís un archivo válido.</p>}
+              
             </li>
           </ol>
-          <Aviso icono={<IconAlerta size={18} />} tono="aviso">Si la restauración falla, la base de datos actual queda intacta.</Aviso>
+          
         </section>
       </div>
 
       <Dialogo abierto={confirmar} titulo="¿Restaurar esta copia?" icono={<IconRestaurar size={24} className="text-destructive" />} onCerrar={() => !restaurando && setConfirmar(false)}>
         <div className="space-y-4">
           <p className="text-base">Vas a restaurar <b className="font-mono">{archivo?.nombre}</b>.</p>
-          <ul className="list-disc space-y-1 pl-5 text-[15px]">
-            <li>Los datos actuales se reemplazan por los de la copia.</li>
-            <li>Lo registrado <b>después</b> de esa copia se va a perder.</li>
-            <li>Nadie debería usar GESPA mientras se restaura.</li>
-          </ul>
+          <p className="text-[15px]">¿Querés reemplazar los datos actuales por esta copia?</p>
           <PieAcciones onCancelar={() => setConfirmar(false)} onConfirmar={restaurar} textoConfirmar="Sí, restaurar" peligro cargando={restaurando} />
         </div>
       </Dialogo>
