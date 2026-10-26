@@ -4,6 +4,7 @@ import { ahoraIso, analizar, fmtHoras, isoAFecha, type Asistencia, type Correcci
 import { IconAlerta, IconCalendario, IconConsultar, IconEntrada, IconHistorial, IconModificar, IconSalida, IconSuspender } from "../icons";
 import { Aviso, Boton, Campo, Dialogo, Encabezado, Etiqueta, PieAcciones, Select, Spinner, Vacio, inputG, tdCls, thCls } from "./ui";
 import type { Notificar } from "./PanelGerente";
+import { createAttemptTracker } from "../prototype";
 
 type Props = {
   fichas: Ficha[]; asistencias: Asistencia[]; setAsistencias: (a: Asistencia[]) => void;
@@ -21,6 +22,7 @@ export function Asistencias({ fichas, asistencias, setAsistencias, correcciones,
   const [suspender, setSuspender] = useState<Asistencia | null>(null);
   const [verHistorial, setVerHistorial] = useState(false);
   const [procesando, setProcesando] = useState(false);
+  const [fallar] = useState(createAttemptTracker);
 
   const consultar = () => {
     if (!desde || !hasta) return setErrorFiltro("Completá las dos fechas del período.");
@@ -45,6 +47,7 @@ export function Asistencias({ fichas, asistencias, setAsistencias, correcciones,
     setProcesando(true);
     setTimeout(() => {
       setProcesando(false);
+      if (fallar("modificar")) { notificar("error", "No se pudo modificar la asistencia", "Intentá de nuevo."); setEditar(null); return; }
       const cambios: Correccion[] = [];
       const cuando = ahoraIso();
       const campos: [keyof Asistencia, string][] = [["fecha", "Fecha"], ["hora", "Hora"], ["tipo", "Tipo de marca"], ["observacion", "Observación"]];
@@ -53,7 +56,7 @@ export function Asistencias({ fichas, asistencias, setAsistencias, correcciones,
       }
       setAsistencias(asistencias.map((a) => (a.id === editar.id ? nuevo : a)));
       setCorrecciones([...cambios, ...correcciones]);
-      notificar("exito", "La asistencia fue modificada", "El cambio quedó registrado en el historial de correcciones.");
+      notificar("exito", "La asistencia fue modificada", "Se guardaron los cambios.");
       setEditar(null);
     }, 700);
   };
@@ -63,16 +66,17 @@ export function Asistencias({ fichas, asistencias, setAsistencias, correcciones,
     setProcesando(true);
     setTimeout(() => {
       setProcesando(false);
+      if (fallar("suspender")) { notificar("error", "No se pudo suspender la asistencia", "Intentá de nuevo."); setSuspender(null); return; }
       setAsistencias(asistencias.map((a) => (a.id === suspender.id ? { ...a, suspendida: true } : a)));
       setCorrecciones([{ id: Date.now(), asistenciaId: suspender.id, dato: "Estado", anterior: "Vigente", nuevo: "Suspendido", cuando: ahoraIso(), gerente }, ...correcciones]);
-      notificar("exito", "La asistencia fue suspendida", "El registro se conserva, pero ya no cuenta para las horas trabajadas.");
+      notificar("exito", "La asistencia fue suspendida");
       setSuspender(null);
     }, 700);
   };
 
   return (
     <>
-      <Encabezado icono={<IconCalendario size={28} />} titulo="Gestionar asistencias" descripcion="Consultá los registros de un período, corregí los incompletos o suspendé los erróneos." />
+      <Encabezado icono={<IconCalendario size={28} />} titulo="Gestionar asistencias" />
 
       <div className="mb-5 flex flex-wrap items-end gap-3 rounded-xl border-2 bg-card p-4">
         <Campo id="a-persona" label="Persona">
@@ -87,7 +91,7 @@ export function Asistencias({ fichas, asistencias, setAsistencias, correcciones,
       {cargando ? (
         <div className="flex items-center justify-center gap-3 rounded-xl border-2 bg-card py-16 text-lg" aria-live="polite"><Spinner /> Buscando registros…</div>
       ) : !consulta ? (
-        <Vacio icono={<IconConsultar size={40} />} titulo="Elegí una persona y un período" detalle="Después tocá «Consultar» para ver los registros y el total de horas." />
+        <Vacio icono={<IconConsultar size={40} />} titulo="Elegí una persona y un período"  />
       ) : regs.length === 0 ? (
         <Vacio icono={<IconCalendario size={40} />} titulo="No se encontraron registros para la persona y el período seleccionados" detalle="Probá con otro período o con «Todas las fichas»." />
       ) : (
@@ -95,7 +99,7 @@ export function Asistencias({ fichas, asistencias, setAsistencias, correcciones,
           <div className="min-w-0 space-y-3">
             {incompletos.size > 0 && (
               <Aviso tono="aviso" icono={<IconAlerta size={18} />}>
-                <b>{incompletos.size} {incompletos.size === 1 ? "registro requiere" : "registros requieren"} modificación</b> (por ejemplo, una entrada sin salida). Están resaltados en la tabla.
+                <b>{incompletos.size} {incompletos.size === 1 ? "registro incompleto" : "registros incompletos"}</b>
               </Aviso>
             )}
             <div className="max-h-[400px] overflow-auto rounded-xl border-2 bg-card">
@@ -113,13 +117,13 @@ export function Asistencias({ fichas, asistencias, setAsistencias, correcciones,
                         <td className={cn(tdCls, "max-w-52 truncate")} title={r.observacion}>{r.observacion || <span className="text-muted-foreground">—</span>}</td>
                         <td className={cn(tdCls, "no-underline")}>
                           {r.suspendida ? <Etiqueta tono="suspendido" icono={<IconSuspender size={14} />}>Suspendido</Etiqueta>
-                            : inc ? <Etiqueta tono="aviso" icono={<IconAlerta size={14} />}>Requiere modificación</Etiqueta>
+                            : inc ? <Etiqueta tono="aviso" icono={<IconAlerta size={14} />}>Incompleto</Etiqueta>
                             : <Etiqueta tono="neutro">Completo</Etiqueta>}
                         </td>
                         <td className={cn(tdCls, "text-right")}>
                           <div className="inline-flex gap-1">
-                            <button disabled={r.suspendida} onClick={() => setEditar(r)} title="Modificar" aria-label={`Modificar registro del ${isoAFecha(r.fecha)} ${r.hora}`} className="inline-flex h-10 items-center gap-1.5 rounded-md border-2 border-input bg-card px-2.5 text-sm font-bold hover:border-primary disabled:opacity-30"><IconModificar size={18} />Modificar</button>
-                            <button disabled={r.suspendida} onClick={() => setSuspender(r)} title="Suspender" aria-label={`Suspender registro del ${isoAFecha(r.fecha)} ${r.hora}`} className="inline-flex h-10 w-10 items-center justify-center rounded-md border-2 border-input bg-card text-destructive hover:border-destructive disabled:opacity-30"><IconSuspender size={18} /></button>
+                            <Boton disabled={r.suspendida} onClick={() => setEditar(r)} title="Modificar" aria-label={`Modificar registro del ${isoAFecha(r.fecha)} ${r.hora}`} className="inline-flex h-10 items-center gap-1.5 rounded-md border-2 border-input bg-card px-2.5 text-sm font-bold hover:border-primary disabled:opacity-30"><IconModificar size={18} />Modificar</Boton>
+                            <Boton disabled={r.suspendida} onClick={() => setSuspender(r)} title="Suspender" aria-label={`Suspender registro del ${isoAFecha(r.fecha)} ${r.hora}`} className="inline-flex h-10 w-10 px-0 items-center justify-center rounded-md border-2 border-input bg-card text-destructive hover:border-destructive disabled:opacity-30"><IconSuspender size={18} /></Boton>
                           </div>
                         </td>
                       </tr>
@@ -135,7 +139,7 @@ export function Asistencias({ fichas, asistencias, setAsistencias, correcciones,
               <p className="mt-1 font-mono text-3xl font-bold">{fmtHoras(minutos)}</p>
               <p className="mt-2 text-sm opacity-80">{isoAFecha(consulta.desde)} al {isoAFecha(consulta.hasta)} · {consulta.persona === "todas" ? "Todas las fichas" : nombre(Number(consulta.persona))}</p>
             </div>
-            <p className="text-sm text-muted-foreground">Solo se suman los pares entrada–salida completos. No se infieren ausencias.</p>
+            
             <Boton className="w-full" icono={<IconHistorial size={20} />} onClick={() => setVerHistorial(true)}>Ver historial de correcciones</Boton>
           </aside>
         </div>
@@ -149,11 +153,6 @@ export function Asistencias({ fichas, asistencias, setAsistencias, correcciones,
         {suspender && (
           <div className="space-y-4">
             <p className="text-base"><b>{nombre(suspender.fichaId)}</b> · {suspender.tipo === "entrada" ? "Entrada" : "Salida"} del {isoAFecha(suspender.fecha)} a las {suspender.hora}.</p>
-            <ul className="list-disc space-y-1 pl-5 text-[15px]">
-              <li>El registro <b>se conserva</b> y se va a ver tachado.</li>
-              <li>Deja de contar para el total de horas.</li>
-              <li>Queda anotado en el historial de correcciones.</li>
-            </ul>
             <PieAcciones onCancelar={() => setSuspender(null)} onConfirmar={confirmarSuspension} textoConfirmar="Sí, suspender" peligro cargando={procesando} />
           </div>
         )}
@@ -161,7 +160,7 @@ export function Asistencias({ fichas, asistencias, setAsistencias, correcciones,
 
       <Dialogo abierto={verHistorial} titulo="Historial de correcciones" icono={<IconHistorial size={24} />} onCerrar={() => setVerHistorial(false)} ancho="max-w-4xl">
         {histVisible.length === 0 ? (
-          <Vacio icono={<IconHistorial size={40} />} titulo="No hay correcciones en este período" detalle="Cuando un gerente modifique o suspenda un registro, va a aparecer acá." />
+          <Vacio icono={<IconHistorial size={40} />} titulo="No hay correcciones en este período"  />
         ) : (
           <div className="max-h-[420px] overflow-auto rounded-xl border-2">
             <table className="w-full">
@@ -171,10 +170,10 @@ export function Asistencias({ fichas, asistencias, setAsistencias, correcciones,
                   const r = asistencias.find((a) => a.id === c.asistenciaId);
                   return (
                     <tr key={c.id} className="border-t">
-                      <td className={tdCls}>{r ? `${nombre(r.fichaId)} · ${isoAFecha(r.fecha)}` : "—"}</td>
+                      <td className={tdCls}>{r ? `${nombre(r.fichaId)} · ${isoAFecha(r.fecha)} ${r.hora} · ${r.tipo === "entrada" ? "Entrada" : "Salida"}` : "—"}</td>
                       <td className={cn(tdCls, "font-bold")}>{c.dato}</td>
-                      <td className={tdCls}>{c.anterior || <span className="text-muted-foreground">(vacío)</span>}</td>
-                      <td className={cn(tdCls, "font-bold")}>{c.nuevo || <span className="text-muted-foreground">(vacío)</span>}</td>
+                      <td className={tdCls}>{(c.dato === "Tipo de marca" ? (c.anterior === "entrada" ? "Entrada" : "Salida") : c.anterior) || <span className="text-muted-foreground">(vacío)</span>}</td>
+                      <td className={cn(tdCls, "font-bold")}>{(c.dato === "Tipo de marca" ? (c.nuevo === "entrada" ? "Entrada" : "Salida") : c.nuevo) || <span className="text-muted-foreground">(vacío)</span>}</td>
                       <td className={cn(tdCls, "font-mono")}>{isoAFecha(c.cuando.slice(0, 10))} {c.cuando.slice(11)}</td>
                       <td className={tdCls}>{c.gerente}</td>
                     </tr>
@@ -205,9 +204,9 @@ function FormAsistencia({ inicial, persona, otros, procesando, onCancelar, onGua
       const i = dia.indexOf(f);
       const prev = dia[i - 1], next = dia[i + 1];
       if ((prev && prev.hora === f.hora) || (next && next.hora === f.hora)) x.general = "Ya hay otro registro a esa misma hora ese día.";
-      else if (f.tipo === "salida" && prev?.tipo === "salida") x.general = `Secuencia inválida: antes de esta salida hay otra salida (${prev.hora}).`;
-      else if (f.tipo === "salida" && !prev && next?.tipo === "entrada") x.general = "Secuencia inválida: la salida no puede ser anterior a la primera entrada del día.";
-      else if (f.tipo === "entrada" && next?.tipo === "entrada") x.general = `Secuencia inválida: después de esta entrada hay otra entrada (${next.hora}).`;
+      else if (f.tipo === "salida" && prev?.tipo === "salida") x.general = "No se pudo modificar la salida. Revisá el registro anterior.";
+      else if (f.tipo === "salida" && !prev && next?.tipo === "entrada") x.general = "No se pudo modificar la salida. Revisá la hora de entrada.";
+      else if (f.tipo === "entrada" && next?.tipo === "entrada") x.general = "No se pudo modificar la entrada. Revisá el registro siguiente.";
     }
     setE(x);
     if (!Object.keys(x).length) onGuardar(f);
@@ -225,16 +224,16 @@ function FormAsistencia({ inicial, persona, otros, procesando, onCancelar, onGua
           <p className="text-[15px] font-bold">Tipo de marca</p>
           <div className="grid grid-cols-2 gap-3" role="radiogroup">
             {(["entrada", "salida"] as Tipo[]).map((t) => (
-              <button key={t} role="radio" aria-checked={f.tipo === t} onClick={() => { setF({ ...f, tipo: t }); setE({}); }}
+              <Boton key={t} role="radio" aria-checked={f.tipo === t} onClick={() => { setF({ ...f, tipo: t }); setE({}); }}
                 className={cn("flex h-12 items-center justify-center gap-2 rounded-lg border-2 text-base font-bold", f.tipo === t ? "border-primary bg-primary text-primary-foreground" : "border-input bg-card hover:border-primary")}>
                 {t === "entrada" ? <IconEntrada size={20} /> : <IconSalida size={20} />}{t === "entrada" ? "Entrada" : "Salida"}
-              </button>
+              </Boton>
             ))}
           </div>
         </div>
         <Campo id="m-obs" label="Observación"><input id="m-obs" value={f.observacion} maxLength={120} onChange={(v) => setF({ ...f, observacion: v.target.value })} className={inputG()} /></Campo>
       </fieldset>
-      <Aviso icono={<IconHistorial size={18} />}>Cada modificación queda registrada en el historial de correcciones, con el valor anterior y tu nombre.</Aviso>
+      
       <PieAcciones onCancelar={onCancelar} onConfirmar={validar} cargando={procesando} />
     </div>
   );

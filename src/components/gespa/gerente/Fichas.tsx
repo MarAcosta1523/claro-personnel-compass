@@ -1,14 +1,15 @@
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { isoAFecha, type Ficha } from "../data";
-import { IconAlerta, IconCandado, IconCheck, IconFicha, IconMas, IconModificar, IconNota, IconSuspender } from "../icons";
+import { IconAlerta, IconCandado, IconCheck, IconFicha, IconConsultar, IconMas, IconModificar, IconNota, IconSuspender } from "../icons";
 import { Aviso, Boton, Buscador, Campo, Dialogo, Encabezado, Etiqueta, PieAcciones, Select, Vacio, inputG, tdCls, thCls } from "./ui";
 import type { Notificar } from "./PanelGerente";
+import { createAttemptTracker } from "../prototype";
 
 type Modo = { t: "nada" } | { t: "ver"; id: number } | { t: "nuevo" } | { t: "editar"; id: number };
 type Form = { nombre: string; apellido: string; dni: string; telefono: string; ingreso: string };
 
-const ACLARACION = "La ficha es un registro interno de la agencia; no equivale al alta laboral ante ARCA.";
+
 
 export function Fichas({ fichas, setFichas, notificar }: { fichas: Ficha[]; setFichas: (f: Ficha[]) => void; notificar: Notificar }) {
   const [q, setQ] = useState("");
@@ -16,6 +17,7 @@ export function Fichas({ fichas, setFichas, notificar }: { fichas: Ficha[]; setF
   const [modo, setModo] = useState<Modo>({ t: "nada" });
   const [suspender, setSuspender] = useState<Ficha | null>(null);
   const [procesando, setProcesando] = useState(false);
+  const [fallar] = useState(createAttemptTracker);
 
   const lista = useMemo(() => {
     const s = q.trim().toLowerCase();
@@ -27,11 +29,12 @@ export function Fichas({ fichas, setFichas, notificar }: { fichas: Ficha[]; setF
     setProcesando(true);
     setTimeout(() => {
       setProcesando(false);
+      if (fallar(modo.t)) { notificar("error", "No se pudo guardar la ficha", "Intentá de nuevo."); return; }
       if (modo.t === "nuevo") {
         const n: Ficha = { id: Date.now(), ...d, estado: "activa" };
         setFichas([n, ...fichas]);
         setModo({ t: "ver", id: n.id });
-        notificar("exito", "La ficha fue registrada", `Ya se pueden registrar asistencias de ${n.nombre} ${n.apellido}.`);
+        notificar("exito", "La ficha fue registrada", `${n.nombre} ${n.apellido}.`);
       } else if (modo.t === "editar") {
         setFichas(fichas.map((f) => (f.id === modo.id ? { ...f, ...d } : f)));
         setModo({ t: "ver", id: modo.id });
@@ -45,8 +48,9 @@ export function Fichas({ fichas, setFichas, notificar }: { fichas: Ficha[]; setF
     setProcesando(true);
     setTimeout(() => {
       setProcesando(false);
+      if (fallar("suspender")) { notificar("error", "No se pudo suspender la ficha", "Intentá de nuevo."); setSuspender(null); return; }
       setFichas(fichas.map((f) => (f.id === suspender.id ? { ...f, estado: "suspendida" } : f)));
-      notificar("exito", "La ficha fue suspendida", `Se conservan los datos y el historial de ${suspender.nombre} ${suspender.apellido}.`);
+      notificar("exito", "La ficha fue suspendida", `${suspender.nombre} ${suspender.apellido}.`);
       setSuspender(null);
     }, 700);
   };
@@ -60,23 +64,22 @@ export function Fichas({ fichas, setFichas, notificar }: { fichas: Ficha[]; setF
       <Encabezado
         icono={<IconFicha size={28} />}
         titulo="Gestionar fichas de personal"
-        descripcion="Datos de cada persona que registra asistencias."
-        acciones={<Boton variante="primario" icono={<IconMas size={22} />} onClick={() => setModo({ t: "nuevo" })}>Registrar ficha</Boton>}
+        acciones={<Boton variante="primario" icono={<IconMas size={22} />} onClick={() => setModo({ t: "nuevo" })}>Registrar ficha de personal</Boton>}
       />
-      <div className="mb-4"><Aviso icono={<IconNota size={18} />}>{ACLARACION}</Aviso></div>
-      <div className="grid grid-cols-[1fr_420px] gap-6">
+
+      <div className="grid grid-cols-[minmax(0,1fr)_380px] gap-6">
         <section className="min-w-0 space-y-3">
           <div className="flex gap-3">
             <Buscador valor={q} onCambio={setQ} placeholder="Buscar por nombre, apellido o DNI" />
             <Select valor={fEstado} onCambio={setFEstado} opciones={[{ v: "todos", t: "Todos los estados" }, { v: "activa", t: "Activas" }, { v: "suspendida", t: "Suspendidas" }]} />
           </div>
-          <p className="text-sm text-muted-foreground">{lista.length} de {fichas.length} fichas · Hacé clic en una fila para ver el detalle.</p>
+          <p className="text-sm text-muted-foreground">{lista.length} de {fichas.length} fichas</p>
           {lista.length === 0 ? (
             <Vacio icono={<IconFicha size={40} />} titulo="No se encontraron fichas" detalle="Probá con otro nombre o DNI, o cambiá el filtro." accion={<Boton onClick={() => { setQ(""); setFEstado("todos"); }}>Limpiar búsqueda</Boton>} />
           ) : (
             <div className="max-h-[440px] overflow-auto rounded-xl border-2 bg-card">
               <table className="w-full">
-                <thead><tr><th className={thCls}>Nombre y apellido</th><th className={thCls}>DNI</th><th className={thCls}>Estado</th></tr></thead>
+                <thead><tr><th className={thCls}>Nombre y apellido</th><th className={thCls}>DNI</th><th className={thCls}>Estado</th><th className={thCls}>Acciones</th></tr></thead>
                 <tbody>
                   {lista.map((f) => (
                     <tr key={f.id} onClick={() => setModo({ t: "ver", id: f.id })} aria-selected={sel?.id === f.id}
@@ -84,6 +87,7 @@ export function Fichas({ fichas, setFichas, notificar }: { fichas: Ficha[]; setF
                       <td className={cn(tdCls, "font-bold")}>{f.nombre} {f.apellido}</td>
                       <td className={cn(tdCls, "font-mono")}>{f.dni}</td>
                       <td className={tdCls}>{estadoTag(f)}</td>
+                      <td className={tdCls}><div className="flex gap-1" onClick={(e) => e.stopPropagation()}><Boton title="Consultar" aria-label={`Consultar ficha ${f.nombre} ${f.apellido}`} className="h-10 w-10 px-0" onClick={() => setModo({ t: "ver", id: f.id })}><IconConsultar size={18} /></Boton><Boton title="Modificar" aria-label={`Modificar ficha ${f.nombre} ${f.apellido}`} className="h-10 w-10 px-0" onClick={() => setModo({ t: "editar", id: f.id })}><IconModificar size={18} /></Boton><Boton variante="peligro" title="Suspender" aria-label={`Suspender ficha ${f.nombre} ${f.apellido}`} className="h-10 w-10 px-0" disabled={f.estado === "suspendida"} onClick={() => setSuspender(f)}><IconSuspender size={18} /></Boton></div></td>
                     </tr>
                   ))}
                 </tbody>
@@ -93,7 +97,7 @@ export function Fichas({ fichas, setFichas, notificar }: { fichas: Ficha[]; setF
         </section>
 
         <aside className="rounded-xl border-2 bg-card p-5">
-          {modo.t === "nada" && <Vacio icono={<IconFicha size={40} />} titulo="Elegí una ficha" detalle="Seleccioná una fila para consultarla, modificarla o suspenderla. O tocá «Registrar ficha»." />}
+          {modo.t === "nada" && <Vacio icono={<IconFicha size={40} />} titulo="Elegí una ficha"  />}
           {modo.t === "ver" && sel && (
             <div className="space-y-5">
               <div>
@@ -105,7 +109,6 @@ export function Fichas({ fichas, setFichas, notificar }: { fichas: Ficha[]; setF
                   <div key={i} className="flex justify-between border-b pb-2"><dt className="text-muted-foreground">{k}</dt><dd className="font-bold">{v}</dd></div>
                 ))}
               </dl>
-              {sel.estado === "suspendida" && <Aviso icono={<IconCandado size={18} />}>Ficha suspendida: no se pueden registrar nuevas asistencias. Los datos y el historial se conservan.</Aviso>}
               <div className="grid grid-cols-2 gap-3">
                 <Boton icono={<IconModificar size={20} />} onClick={() => setModo({ t: "editar", id: sel.id })}>Modificar</Boton>
                 <Boton variante="peligro" icono={<IconSuspender size={20} />} disabled={sel.estado === "suspendida"} onClick={() => setSuspender(sel)}>Suspender</Boton>
@@ -130,10 +133,6 @@ export function Fichas({ fichas, setFichas, notificar }: { fichas: Ficha[]; setF
         {suspender && (
           <div className="space-y-4">
             <p className="text-base">Vas a suspender la ficha de <b>{suspender.nombre} {suspender.apellido}</b> (DNI {suspender.dni}).</p>
-            <ul className="list-disc space-y-1 pl-5 text-[15px]">
-              <li>Se <b>conservan</b> sus datos y todo su historial de asistencias.</li>
-              <li><b>No se van a poder registrar nuevas asistencias</b> para esta ficha.</li>
-            </ul>
             <PieAcciones onCancelar={() => setSuspender(null)} onConfirmar={confirmarSuspension} textoConfirmar="Sí, suspender" peligro cargando={procesando} />
           </div>
         )}
@@ -161,10 +160,10 @@ function FormFicha({ inicial, editando, dnisOcupados, procesando, onCancelar, on
     <div className="space-y-4">
       <div>
         <p className="text-sm font-bold uppercase tracking-wide text-muted-foreground">{editando ? "Modificar ficha" : "Registrar ficha"}</p>
-        <p className="mt-1 text-[15px] text-muted-foreground">{ACLARACION}</p>
+
       </div>
       {Object.values(e).some(Boolean) && (
-        <div role="alert" className="flex items-center gap-2 rounded-lg border-2 border-destructive bg-destructive-soft px-3 py-2 text-[15px] font-bold text-destructive"><IconAlerta size={20} /> Revisá los campos marcados.</div>
+        <div role="alert" className="flex items-center gap-2 rounded-lg border-2 border-destructive bg-destructive-soft px-3 py-2 text-[15px] font-bold text-destructive"><IconAlerta size={20} /> No se pudo guardar la ficha. Revisá los campos marcados.</div>
       )}
       <fieldset disabled={procesando} className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
