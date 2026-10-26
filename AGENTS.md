@@ -8,3 +8,7 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Keep GESPA as an in-memory UI prototype; no persistence or server operations are introduced until explicitly requested.
+- Reuse the shared GESPA button and password input across both roles so interactions and visibility controls stay consistent.
+- Model transient prototype failures with a per-screen attempt tracker, separate from business validation; retries must reach the success state without demo controls in the UI.
