@@ -125,7 +125,7 @@ export function Dialogo({ abierto, titulo, icono, onCerrar, children, ancho = "m
       <div ref={ref} role="dialog" aria-modal="true" aria-label={titulo} className={cn("w-full rounded-xl border-2 bg-card p-6 shadow-2xl", ancho)}>
         <div className="mb-4 flex items-start justify-between gap-4">
           <h2 className="flex items-center gap-2.5 text-xl font-bold">{icono}{titulo}</h2>
-          <button onClick={onCerrar} aria-label="Cerrar" className="rounded-md p-1.5 hover:bg-accent"><IconCerrar size={20} /></button>
+          <Boton variante="fantasma" onClick={onCerrar} aria-label="Cerrar" className="h-9 w-9 shrink-0 px-0"><IconCerrar size={20} /></Boton>
         </div>
         {children}
       </div>

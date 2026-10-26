@@ -13,11 +13,11 @@ import { Boton } from "./ui";
 export type Notificar = (tipo: "exito" | "error", titulo: string, detalle?: string) => void;
 type Seccion = "inicio" | "usuarios" | "fichas" | "asistencias" | "copias";
 
-const MENU: { id: Seccion; t: string; d: string; icono: (s: number) => ReactNode }[] = [
-  { id: "usuarios", t: "Gestionar usuarios", d: "", icono: (s) => <IconPerfil size={s} /> },
-  { id: "fichas", t: "Gestionar fichas de personal", d: "", icono: (s) => <IconFicha size={s} /> },
-  { id: "asistencias", t: "Gestionar asistencias", d: "", icono: (s) => <IconCalendario size={s} /> },
-  { id: "copias", t: "Copias de seguridad", d: "", icono: (s) => <IconCopia size={s} /> },
+const MENU: { id: Seccion; t: string; icono: (s: number) => ReactNode }[] = [
+  { id: "usuarios", t: "Gestionar usuarios", icono: (s) => <IconPerfil size={s} /> },
+  { id: "fichas", t: "Gestionar fichas de personal", icono: (s) => <IconFicha size={s} /> },
+  { id: "asistencias", t: "Gestionar asistencias", icono: (s) => <IconCalendario size={s} /> },
+  { id: "copias", t: "Copias de seguridad", icono: (s) => <IconCopia size={s} /> },
 ];
 
 export function PanelGerente({ cuenta, onSalir }: { cuenta: Cuenta; onSalir: () => void }) {
@@ -49,7 +49,7 @@ export function PanelGerente({ cuenta, onSalir }: { cuenta: Cuenta; onSalir: () 
               <p className="text-sm opacity-70">Gerente</p>
             </div>
           </div>
-          <Boton onClick={onSalir} className="flex h-11 items-center gap-2 rounded-lg border-2 border-topbar-foreground/40 px-4 text-base font-bold hover:bg-topbar-foreground/10">
+          <Boton variante="fantasma" onClick={onSalir} className="flex h-11 bg-transparent text-topbar-foreground items-center gap-2 rounded-lg border-2 border-topbar-foreground/40 px-4 text-base font-bold hover:bg-topbar-foreground/10">
             <IconSalida size={20} /> Cerrar sesión
           </Boton>
         </div>
@@ -91,7 +91,7 @@ export function PanelGerente({ cuenta, onSalir }: { cuenta: Cuenta; onSalir: () 
                     <span className="rounded-lg bg-secondary p-3 transition group-hover:bg-primary group-hover:text-primary-foreground">{m.icono(32)}</span>
                     <span>
                       <span className="block text-xl font-bold">{m.t}</span>
-                      <span className="mt-1 block text-[15px] text-muted-foreground">{m.d}</span>
+
                     </span>
                   </Boton>
                 ))}
@@ -111,8 +111,8 @@ export function PanelGerente({ cuenta, onSalir }: { cuenta: Cuenta; onSalir: () 
 
 function ItemMenu({ activo, onClick, icono, children }: { activo: boolean; onClick: () => void; icono: ReactNode; children: ReactNode }) {
   return (
-    <Boton onClick={onClick} aria-current={activo ? "page" : undefined}
-      className={cn("flex min-h-12 w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-[15px] font-bold transition", activo ? "border-primary bg-accent text-primary" : "hover:bg-accent")}>
+    <Boton variante="fantasma" onClick={onClick} aria-current={activo ? "page" : undefined}
+      className={cn("flex h-auto min-h-12 w-full justify-start whitespace-normal items-center gap-3 rounded-lg px-3 py-2 text-left text-[15px] font-bold transition", activo ? "border-primary bg-accent text-primary" : "hover:bg-accent")}>
       <span className="shrink-0">{icono}</span>{children}
     </Boton>
   );

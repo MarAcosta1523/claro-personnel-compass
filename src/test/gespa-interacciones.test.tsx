@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, cleanup } from "@testing-library/react";
+import { act, fireEvent, render, screen, cleanup } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { PasswordInput } from "@/components/gespa/PasswordInput";
 import { createAttemptTracker } from "@/components/gespa/prototype";
@@ -38,7 +38,7 @@ describe("Acceso por rol", () => {
     fireEvent.change(screen.getByLabelText("DNI"), { target: { value: dni } });
     fireEvent.change(screen.getByLabelText("Contraseña"), { target: { value: pass } });
     fireEvent.click(screen.getByRole("button", { name: "Iniciar sesión" }));
-    vi.runAllTimers();
+    act(() => vi.runAllTimers());
     expect(ingresar).toHaveBeenCalledWith(expect.objectContaining({ dni, rol }));
   });
   it("impide ingresar con una cuenta suspendida", () => {
@@ -48,7 +48,7 @@ describe("Acceso por rol", () => {
     fireEvent.change(screen.getByLabelText("DNI"), { target: { value: "28999000" } });
     fireEvent.change(screen.getByLabelText("Contraseña"), { target: { value: "Suerte2026!" } });
     fireEvent.click(screen.getByRole("button", { name: "Iniciar sesión" }));
-    vi.runAllTimers();
+    act(() => vi.runAllTimers());
     expect(ingresar).not.toHaveBeenCalled();
   });
 });

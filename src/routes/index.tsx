@@ -22,7 +22,7 @@ export const Route = createFileRoute("/")({
 function Index() {
   const [cuenta, setCuenta] = useState<Cuenta | null>(null);
   return (
-    <div className="min-w-[1366px]">
+    <div className="min-w-[1280px]">
       {cuenta?.rol === "Gerente" ? <PanelGerente key={cuenta.dni} cuenta={cuenta} onSalir={() => setCuenta(null)} /> : cuenta ? <InicioPersonal key={cuenta.dni} cuenta={cuenta} onSalir={() => setCuenta(null)} /> : <Login onIngresar={setCuenta} />}
     </div>
   );

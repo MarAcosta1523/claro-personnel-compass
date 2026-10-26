@@ -78,8 +78,9 @@ export function InicioPersonal({ cuenta, onSalir }: { cuenta: Cuenta; onSalir: (
             </div>
           </div>
           <Boton
+            variante="fantasma"
             onClick={onSalir}
-            className="flex h-11 items-center gap-2 rounded-lg border-2 border-topbar-foreground/40 px-4 text-base font-bold hover:bg-topbar-foreground/10 focus-visible:outline-2 focus-visible:outline-topbar-foreground"
+            className="flex h-11 bg-transparent text-topbar-foreground items-center gap-2 rounded-lg border-2 border-topbar-foreground/40 px-4 text-base font-bold hover:bg-topbar-foreground/10 focus-visible:outline-2 focus-visible:outline-topbar-foreground"
           >
             <IconSalida size={20} /> Cerrar sesión
           </Boton>
@@ -123,6 +124,7 @@ export function InicioPersonal({ cuenta, onSalir }: { cuenta: Cuenta; onSalir: (
 
             <div className="flex items-center gap-4">
               <Boton
+                variante="primario"
                 onClick={confirmar}
                 disabled={!tipo || procesando}
                 className="flex h-14 min-w-64 items-center justify-center gap-2 rounded-lg bg-primary px-8 text-lg font-bold text-primary-foreground hover:opacity-90 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-40"
@@ -162,20 +164,6 @@ export function InicioPersonal({ cuenta, onSalir }: { cuenta: Cuenta; onSalir: (
         </aside>
       </main>
     </div>
-  );
-}
-
-function Paso({ n, activo, invert }: { n: number; activo: boolean; invert?: boolean }) {
-  return (
-    <span
-      className={cn(
-        "inline-flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold",
-        invert ? "bg-primary-foreground text-primary" : activo ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground",
-      )}
-      aria-hidden
-    >
-      {n}
-    </span>
   );
 }
 

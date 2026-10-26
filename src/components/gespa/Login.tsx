@@ -44,12 +44,12 @@ export function Login({ onIngresar }: { onIngresar: (c: Cuenta) => void }) {
 
   return (
     <div className="grid min-h-screen grid-cols-[minmax(420px,5fr)_7fr]">
-      <aside className="flex flex-col justify-between bg-topbar p-12 text-topbar-foreground">
+      <aside className="relative flex flex-col bg-topbar p-12 text-topbar-foreground">
         <div className="flex items-center gap-3">
           <img src={logo} alt="" className="h-12 w-auto" />
           <span className="text-lg font-bold">Punto de la Suerte</span>
         </div>
-        <div>
+        <div className="my-auto py-12">
           <img src={logo} alt="Logo de Punto de la Suerte" className="mb-8 h-40 w-auto" />
           <h1 className="text-5xl font-bold tracking-tight">GESPA</h1>
           
