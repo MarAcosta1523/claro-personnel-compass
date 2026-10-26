@@ -11,7 +11,9 @@ describe("Controles de contraseña", () => {
     render(<><PasswordInput id="clave" aria-label="Clave" value="Suerte2026!" readOnly /><PasswordInput id="confirmacion" aria-label="Confirmación" value="Suerte2026!" readOnly /></>);
     const clave = screen.getByLabelText("Clave");
     const confirmacion = screen.getByLabelText("Confirmación");
-    fireEvent.click(screen.getAllByRole("button", { name: "Mostrar contraseña" })[0]);
+    const mostrar = screen.getAllByRole("button", { name: "Mostrar contraseña" }).at(0);
+    if (!mostrar) throw new Error("Falta el control de contraseña");
+    fireEvent.click(mostrar);
     expect(clave.getAttribute("type")).toBe("text");
     expect(confirmacion.getAttribute("type")).toBe("password");
     fireEvent.click(screen.getByRole("button", { name: "Ocultar contraseña" }));
