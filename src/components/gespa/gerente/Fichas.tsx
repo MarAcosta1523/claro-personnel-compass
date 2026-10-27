@@ -5,6 +5,7 @@ import { IconAlerta, IconCandado, IconCheck, IconFicha, IconConsultar, IconMas, 
 import { Aviso, Boton, Buscador, Campo, Dialogo, Encabezado, Etiqueta, PieAcciones, Select, Vacio, inputG, tdCls, thCls } from "./ui";
 import type { Notificar } from "./PanelGerente";
 import { createAttemptTracker } from "../prototype";
+import { Mensaje } from "../Mensaje";
 
 type Modo = { t: "nada" } | { t: "ver"; id: number } | { t: "nuevo" } | { t: "editar"; id: number };
 type Form = { nombre: string; apellido: string; dni: string; telefono: string; ingreso: string };
@@ -18,6 +19,7 @@ export function Fichas({ fichas, setFichas, notificar }: { fichas: Ficha[]; setF
   const [suspender, setSuspender] = useState<Ficha | null>(null);
   const [procesando, setProcesando] = useState(false);
   const [fallar] = useState(createAttemptTracker);
+  const [errorOperacion, setErrorOperacion] = useState<string | null>(null);
 
   const lista = useMemo(() => {
     const s = q.trim().toLowerCase();
@@ -26,10 +28,11 @@ export function Fichas({ fichas, setFichas, notificar }: { fichas: Ficha[]; setF
   const sel = modo.t === "ver" || modo.t === "editar" ? fichas.find((f) => f.id === modo.id) : undefined;
 
   const guardar = (d: Form) => {
+    setErrorOperacion(null);
     setProcesando(true);
     setTimeout(() => {
       setProcesando(false);
-      if (fallar(modo.t)) { notificar("error", "No se pudo guardar la ficha", "Intentá de nuevo."); return; }
+      if (fallar(modo.t)) { setErrorOperacion("No se pudo guardar la ficha. Intentá de nuevo."); return; }
       if (modo.t === "nuevo") {
         const n: Ficha = { id: Date.now(), ...d, estado: "activa" };
         setFichas([n, ...fichas]);
@@ -45,10 +48,11 @@ export function Fichas({ fichas, setFichas, notificar }: { fichas: Ficha[]; setF
 
   const confirmarSuspension = () => {
     if (!suspender) return;
+    setErrorOperacion(null);
     setProcesando(true);
     setTimeout(() => {
       setProcesando(false);
-      if (fallar("suspender")) { notificar("error", "No se pudo suspender la ficha", "Intentá de nuevo."); setSuspender(null); return; }
+      if (fallar("suspender")) { setErrorOperacion("No se pudo suspender la ficha. Intentá de nuevo."); return; }
       setFichas(fichas.map((f) => (f.id === suspender.id ? { ...f, estado: "suspendida" } : f)));
       notificar("exito", "La ficha fue suspendida", `${suspender.nombre} ${suspender.apellido}.`);
       setSuspender(null);
@@ -64,7 +68,7 @@ export function Fichas({ fichas, setFichas, notificar }: { fichas: Ficha[]; setF
       <Encabezado
         icono={<IconFicha size={28} />}
         titulo="Gestionar fichas de personal"
-        acciones={<Boton variante="primario" icono={<IconMas size={22} />} onClick={() => setModo({ t: "nuevo" })}>Registrar ficha de personal</Boton>}
+        acciones={<Boton variante="primario" icono={<IconMas size={22} />} onClick={() => { setErrorOperacion(null); setModo({ t: "nuevo" }); }}>Registrar ficha de personal</Boton>}
       />
 
       <div className="grid grid-cols-[minmax(0,1fr)_380px] gap-6">
@@ -82,12 +86,12 @@ export function Fichas({ fichas, setFichas, notificar }: { fichas: Ficha[]; setF
                 <thead><tr><th className={thCls}>Nombre y apellido</th><th className={thCls}>DNI</th><th className={thCls}>Estado</th><th className={thCls}>Acciones</th></tr></thead>
                 <tbody>
                   {lista.map((f) => (
-                    <tr key={f.id} onClick={() => setModo({ t: "ver", id: f.id })} aria-selected={sel?.id === f.id}
+                    <tr key={f.id} onClick={() => { setErrorOperacion(null); setModo({ t: "ver", id: f.id }); }} aria-selected={sel?.id === f.id}
                       className={cn("cursor-pointer border-t", sel?.id === f.id ? "bg-accent outline-2 -outline-offset-2 outline-primary" : "hover:bg-muted", f.estado === "suspendida" && "text-muted-foreground")}>
                       <td className={cn(tdCls, "font-bold")}>{f.nombre} {f.apellido}</td>
                       <td className={cn(tdCls, "font-mono")}>{f.dni}</td>
                       <td className={tdCls}>{estadoTag(f)}</td>
-                      <td className={tdCls}><div className="flex gap-1" onClick={(e) => e.stopPropagation()}><Boton title="Consultar" aria-label={`Consultar ficha ${f.nombre} ${f.apellido}`} className="h-10 w-10 px-0" onClick={() => setModo({ t: "ver", id: f.id })}><IconConsultar size={18} /></Boton><Boton title="Modificar" aria-label={`Modificar ficha ${f.nombre} ${f.apellido}`} className="h-10 w-10 px-0" onClick={() => setModo({ t: "editar", id: f.id })}><IconModificar size={18} /></Boton><Boton variante="peligro" title="Suspender" aria-label={`Suspender ficha ${f.nombre} ${f.apellido}`} className="h-10 w-10 px-0" disabled={f.estado === "suspendida"} onClick={() => setSuspender(f)}><IconSuspender size={18} /></Boton></div></td>
+                      <td className={tdCls}><div className="flex gap-1" onClick={(e) => e.stopPropagation()}><Boton title="Consultar" aria-label={`Consultar ficha ${f.nombre} ${f.apellido}`} className="h-10 w-10 px-0" onClick={() => { setErrorOperacion(null); setModo({ t: "ver", id: f.id }); }}><IconConsultar size={18} /></Boton><Boton title="Modificar" aria-label={`Modificar ficha ${f.nombre} ${f.apellido}`} className="h-10 w-10 px-0" onClick={() => { setErrorOperacion(null); setModo({ t: "editar", id: f.id }); }}><IconModificar size={18} /></Boton><Boton variante="peligro" title="Suspender" aria-label={`Suspender ficha ${f.nombre} ${f.apellido}`} className="h-10 w-10 px-0" disabled={f.estado === "suspendida"} onClick={() => { setErrorOperacion(null); setSuspender(f); }}><IconSuspender size={18} /></Boton></div></td>
                     </tr>
                   ))}
                 </tbody>
@@ -97,6 +101,7 @@ export function Fichas({ fichas, setFichas, notificar }: { fichas: Ficha[]; setF
         </section>
 
         <aside className="rounded-xl border-2 bg-card p-5">
+          {errorOperacion && !suspender && <div className="mb-4"><Mensaje tipo="error" titulo={errorOperacion} onCerrar={() => setErrorOperacion(null)} /></div>}
           {modo.t === "nada" && <Vacio icono={<IconFicha size={40} />} titulo="Elegí una ficha"  />}
           {modo.t === "ver" && sel && (
             <div className="space-y-5">
@@ -110,8 +115,8 @@ export function Fichas({ fichas, setFichas, notificar }: { fichas: Ficha[]; setF
                 ))}
               </dl>
               <div className="grid grid-cols-2 gap-3">
-                <Boton icono={<IconModificar size={20} />} onClick={() => setModo({ t: "editar", id: sel.id })}>Modificar</Boton>
-                <Boton variante="peligro" icono={<IconSuspender size={20} />} disabled={sel.estado === "suspendida"} onClick={() => setSuspender(sel)}>Suspender</Boton>
+                <Boton icono={<IconModificar size={20} />} onClick={() => { setErrorOperacion(null); setModo({ t: "editar", id: sel.id }); }}>Modificar</Boton>
+                <Boton variante="peligro" icono={<IconSuspender size={20} />} disabled={sel.estado === "suspendida"} onClick={() => { setErrorOperacion(null); setSuspender(sel); }}>Suspender</Boton>
               </div>
             </div>
           )}
@@ -132,6 +137,7 @@ export function Fichas({ fichas, setFichas, notificar }: { fichas: Ficha[]; setF
       <Dialogo abierto={!!suspender} titulo="¿Suspender esta ficha?" icono={<IconSuspender size={24} className="text-destructive" />} onCerrar={() => !procesando && setSuspender(null)}>
         {suspender && (
           <div className="space-y-4">
+            {errorOperacion && <Mensaje tipo="error" titulo={errorOperacion} onCerrar={() => setErrorOperacion(null)} />}
             <p className="text-base">Vas a suspender la ficha de <b>{suspender.nombre} {suspender.apellido}</b> (DNI {suspender.dni}).</p>
             <PieAcciones onCancelar={() => setSuspender(null)} onConfirmar={confirmarSuspension} textoConfirmar="Sí, suspender" peligro cargando={procesando} />
           </div>

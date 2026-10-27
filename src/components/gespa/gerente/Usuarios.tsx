@@ -5,6 +5,7 @@ import { IconAlerta, IconCandado, IconCheck, IconCrearCuenta, IconConsultar, Ico
 import { Aviso, Boton, Buscador, Campo, Dialogo, Encabezado, Etiqueta, PieAcciones, Select, Vacio, inputG, tdCls, thCls } from "./ui";
 import type { Notificar } from "./PanelGerente";
 import { createAttemptTracker } from "../prototype";
+import { Mensaje } from "../Mensaje";
 import { PasswordInput } from "../PasswordInput";
 
 type Modo = { t: "nada" } | { t: "ver"; id: number } | { t: "nuevo" } | { t: "editar"; id: number };
@@ -19,6 +20,7 @@ export function Usuarios({ usuarios, setUsuarios, notificar }: { usuarios: Usuar
   const [suspender, setSuspender] = useState<Usuario | null>(null);
   const [procesando, setProcesando] = useState(false);
   const [fallar] = useState(createAttemptTracker);
+  const [errorOperacion, setErrorOperacion] = useState<string | null>(null);
 
   const lista = useMemo(() => {
     const s = q.trim().toLowerCase();
@@ -33,10 +35,11 @@ export function Usuarios({ usuarios, setUsuarios, notificar }: { usuarios: Usuar
   const sel = modo.t === "ver" || modo.t === "editar" ? usuarios.find((u) => u.id === modo.id) : undefined;
 
   const guardar = (f: Form) => {
+    setErrorOperacion(null);
     setProcesando(true);
     setTimeout(() => {
       setProcesando(false);
-      if (fallar(modo.t)) { notificar("error", "No se pudo guardar el usuario", "Intentá de nuevo."); return; }
+      if (fallar(modo.t)) { setErrorOperacion("No se pudo guardar el usuario. Intentá de nuevo."); return; }
       if (modo.t === "nuevo") {
         const nuevo: Usuario = { id: Date.now(), nombre: f.nombre.trim(), apellido: f.apellido.trim(), dni: f.dni, rol: f.rol, estado: "activo" };
         setUsuarios([nuevo, ...usuarios]);
@@ -52,10 +55,11 @@ export function Usuarios({ usuarios, setUsuarios, notificar }: { usuarios: Usuar
 
   const confirmarSuspension = () => {
     if (!suspender) return;
+    setErrorOperacion(null);
     setProcesando(true);
     setTimeout(() => {
       setProcesando(false);
-      if (fallar("suspender")) { notificar("error", "No se pudo suspender el usuario", "Intentá de nuevo."); setSuspender(null); return; }
+      if (fallar("suspender")) { setErrorOperacion("No se pudo suspender el usuario. Intentá de nuevo."); return; }
       setUsuarios(usuarios.map((u) => (u.id === suspender.id ? { ...u, estado: "suspendido" } : u)));
       notificar("exito", "El usuario fue suspendido", `${suspender.nombre} ${suspender.apellido}.`);
       setSuspender(null);
@@ -67,7 +71,7 @@ export function Usuarios({ usuarios, setUsuarios, notificar }: { usuarios: Usuar
       <Encabezado
         icono={<IconPerfil size={28} />}
         titulo="Gestionar usuarios"
-        acciones={<Boton variante="primario" icono={<IconCrearCuenta size={22} />} onClick={() => setModo({ t: "nuevo" })}>Registrar usuario</Boton>}
+        acciones={<Boton variante="primario" icono={<IconCrearCuenta size={22} />} onClick={() => { setErrorOperacion(null); setModo({ t: "nuevo" }); }}>Registrar usuario</Boton>}
       />
       <div className="grid grid-cols-[minmax(0,1fr)_380px] gap-6">
         <section className="min-w-0 space-y-3">
@@ -87,13 +91,13 @@ export function Usuarios({ usuarios, setUsuarios, notificar }: { usuarios: Usuar
                   {lista.map((u) => {
                     const activo = sel?.id === u.id;
                     return (
-                      <tr key={u.id} onClick={() => setModo({ t: "ver", id: u.id })} aria-selected={activo}
+                      <tr key={u.id} onClick={() => { setErrorOperacion(null); setModo({ t: "ver", id: u.id }); }} aria-selected={activo}
                         className={cn("cursor-pointer border-t transition", activo ? "bg-accent outline-2 -outline-offset-2 outline-primary" : "hover:bg-muted", u.estado === "suspendido" && "text-muted-foreground")}>
                         <td className={cn(tdCls, "font-bold")}>{u.nombre} {u.apellido}</td>
                         <td className={cn(tdCls, "font-mono")}>{u.dni}</td>
                         <td className={tdCls}>{u.rol}</td>
                         <td className={tdCls}>{u.estado === "activo" ? <Etiqueta tono="activo" icono={<IconCheck size={14} />}>Activo</Etiqueta> : <Etiqueta tono="suspendido" icono={<IconCandado size={14} />}>Suspendido</Etiqueta>}</td>
-                        <td className={tdCls}><div className="flex gap-1" onClick={(e) => e.stopPropagation()}><Boton title="Consultar" aria-label={`Consultar usuario ${u.nombre} ${u.apellido}`} className="h-10 w-10 px-0" onClick={() => setModo({ t: "ver", id: u.id })}><IconConsultar size={18} /></Boton><Boton title="Modificar" aria-label={`Modificar usuario ${u.nombre} ${u.apellido}`} className="h-10 w-10 px-0" onClick={() => setModo({ t: "editar", id: u.id })}><IconModificar size={18} /></Boton><Boton variante="peligro" title="Suspender" aria-label={`Suspender usuario ${u.nombre} ${u.apellido}`} className="h-10 w-10 px-0" disabled={u.estado === "suspendido"} onClick={() => setSuspender(u)}><IconSuspender size={18} /></Boton></div></td>
+                        <td className={tdCls}><div className="flex gap-1" onClick={(e) => e.stopPropagation()}><Boton title="Consultar" aria-label={`Consultar usuario ${u.nombre} ${u.apellido}`} className="h-10 w-10 px-0" onClick={() => { setErrorOperacion(null); setModo({ t: "ver", id: u.id }); }}><IconConsultar size={18} /></Boton><Boton title="Modificar" aria-label={`Modificar usuario ${u.nombre} ${u.apellido}`} className="h-10 w-10 px-0" onClick={() => { setErrorOperacion(null); setModo({ t: "editar", id: u.id }); }}><IconModificar size={18} /></Boton><Boton variante="peligro" title="Suspender" aria-label={`Suspender usuario ${u.nombre} ${u.apellido}`} className="h-10 w-10 px-0" disabled={u.estado === "suspendido"} onClick={() => { setErrorOperacion(null); setSuspender(u); }}><IconSuspender size={18} /></Boton></div></td>
                       </tr>
                     );
                   })}
@@ -104,6 +108,7 @@ export function Usuarios({ usuarios, setUsuarios, notificar }: { usuarios: Usuar
         </section>
 
         <aside className="rounded-xl border-2 bg-card p-5">
+          {errorOperacion && !suspender && <div className="mb-4"><Mensaje tipo="error" titulo={errorOperacion} onCerrar={() => setErrorOperacion(null)} /></div>}
           {modo.t === "nada" && <Vacio icono={<IconPerfil size={40} />} titulo="Elegí un usuario"  />}
           {modo.t === "ver" && sel && (
             <div className="space-y-5">
@@ -117,8 +122,8 @@ export function Usuarios({ usuarios, setUsuarios, notificar }: { usuarios: Usuar
                 ))}
               </dl>
               <div className="grid grid-cols-2 gap-3">
-                <Boton icono={<IconModificar size={20} />} onClick={() => setModo({ t: "editar", id: sel.id })}>Modificar</Boton>
-                <Boton variante="peligro" icono={<IconSuspender size={20} />} disabled={sel.estado === "suspendido"} onClick={() => setSuspender(sel)}>Suspender</Boton>
+                <Boton icono={<IconModificar size={20} />} onClick={() => { setErrorOperacion(null); setModo({ t: "editar", id: sel.id }); }}>Modificar</Boton>
+                <Boton variante="peligro" icono={<IconSuspender size={20} />} disabled={sel.estado === "suspendido"} onClick={() => { setErrorOperacion(null); setSuspender(sel); }}>Suspender</Boton>
               </div>
             </div>
           )}
@@ -139,6 +144,7 @@ export function Usuarios({ usuarios, setUsuarios, notificar }: { usuarios: Usuar
       <Dialogo abierto={!!suspender} titulo="¿Suspender este usuario?" icono={<IconSuspender size={24} className="text-destructive" />} onCerrar={() => !procesando && setSuspender(null)}>
         {suspender && (
           <div className="space-y-4">
+            {errorOperacion && <Mensaje tipo="error" titulo={errorOperacion} onCerrar={() => setErrorOperacion(null)} />}
             <p className="text-base">Vas a suspender la cuenta de <b>{suspender.nombre} {suspender.apellido}</b> (DNI {suspender.dni}).</p>
             <PieAcciones onCancelar={() => setSuspender(null)} onConfirmar={confirmarSuspension} textoConfirmar="Sí, suspender" peligro cargando={procesando} />
           </div>

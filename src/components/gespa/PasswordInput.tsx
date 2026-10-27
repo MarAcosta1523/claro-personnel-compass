@@ -1,6 +1,6 @@
 import { useState, type InputHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
-import { IconOjo, IconOjoOculto } from "./icons";
+import { IconOjo } from "./icons";
 import { Boton } from "./gerente/ui";
 
 export function PasswordInput({ className, ...props }: InputHTMLAttributes<HTMLInputElement>) {
