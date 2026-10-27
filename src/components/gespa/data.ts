@@ -7,6 +7,7 @@ export type Cuenta = {
   password: string;
   nombre: string;
   rol: Rol;
+  fichaId?: number;
   suspendida?: boolean;
   ultimo: Registro | null;
 };
@@ -16,9 +17,9 @@ ayer.setDate(ayer.getDate() - 1);
 ayer.setHours(18, 2, 0, 0);
 
 export const CUENTAS: Cuenta[] = [
-  { dni: "30111222", password: "Suerte2026!", nombre: "Lucía Fernández", rol: "Personal", ultimo: { tipo: "salida", fecha: ayer } },
-  { dni: "35444555", password: "Suerte2026!", nombre: "Martín Gómez", rol: "Personal", ultimo: null },
-  { dni: "28999000", password: "Suerte2026!", nombre: "Carla Ruiz", rol: "Personal", suspendida: true, ultimo: null },
+  { dni: "30111222", password: "Suerte2026!", nombre: "Lucía Fernández", rol: "Personal", fichaId: 1, ultimo: { tipo: "salida", fecha: ayer } },
+  { dni: "35444555", password: "Suerte2026!", nombre: "Martín Gómez", rol: "Personal", fichaId: 2, ultimo: null },
+  { dni: "28999000", password: "Suerte2026!", nombre: "Carla Ruiz", rol: "Personal", fichaId: 3, suspendida: true, ultimo: null },
   { dni: "22333444", password: "Gerente2026!", nombre: "Roberto Sosa", rol: "Gerente", ultimo: null },
 ];
 
@@ -85,7 +86,7 @@ export const POLITICA = [
 ] as const;
 export const cumplePolitica = (p: string) => POLITICA.every((r) => r.ok(p));
 
-const min = (h: string) => { const [x, y] = h.split(":").map(Number); return x! * 60 + y!; };
+const min = (h: string) => { const [x = 0, y = 0] = h.split(":").map(Number); return x * 60 + y; };
 
 /** Empareja entrada→salida por ficha y día. Lo que no tiene par queda incompleto (no se infieren ausencias). */
 export function analizar(regs: Asistencia[]) {

@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import logo from "@/assets/logo-gespa.png";
-import { CUENTAS, type Cuenta } from "./data";
+import { CUENTAS, FICHAS, USUARIOS, type Cuenta, type Ficha, type Usuario } from "./data";
+import { fichaVinculada } from "./asistencia-personal";
 import { IconEntrada } from "./icons";
 import { Mensaje } from "./Mensaje";
 import { PasswordInput } from "./PasswordInput";
@@ -8,7 +9,7 @@ import { Boton } from "./gerente/ui";
 
 type Error = { tipo: "error" | "suspendida"; titulo: string; detalle: string } | null;
 
-export function Login({ onIngresar }: { onIngresar: (c: Cuenta) => void }) {
+export function Login({ onIngresar, usuarios = USUARIOS, fichas = FICHAS }: { onIngresar: (c: Cuenta) => void; usuarios?: Usuario[]; fichas?: Ficha[] }) {
   const [dni, setDni] = useState("");
   const [pass, setPass] = useState("");
   const [error, setError] = useState<Error>(null);
@@ -33,12 +34,18 @@ export function Login({ onIngresar }: { onIngresar: (c: Cuenta) => void }) {
         setError({ tipo: "error", titulo: "DNI o contraseña incorrectos", detalle: "Revisá los datos e intentá de nuevo." });
         return;
       }
-      if (cuenta.suspendida) {
+      const usuario = usuarios.find((u) => u.dni === cuenta.dni);
+      if (cuenta.suspendida || usuario?.estado === "suspendido") {
         setPass("");
         setError({ tipo: "suspendida", titulo: "Tu cuenta está suspendida", detalle: "No podés ingresar. Consultá con el Gerente." });
         return;
       }
-      onIngresar(cuenta);
+      const vinculada = { ...cuenta, fichaId: usuario?.fichaId ?? cuenta.fichaId };
+      if (vinculada.rol === "Personal" && !fichaVinculada(vinculada, fichas)) {
+        setError({ tipo: "error", titulo: "No se pudo iniciar sesión", detalle: "Consultá con el Gerente." });
+        return;
+      }
+      onIngresar(vinculada);
     }, 700);
   };
 
@@ -104,7 +111,18 @@ export function Login({ onIngresar }: { onIngresar: (c: Cuenta) => void }) {
             {cargando ? "Ingresando…" : "Iniciar sesión"}
           </Boton>
 
-          
+          <section aria-label="Cuentas de ejemplo" className="border-t-2 pt-4 text-sm">
+            <h3 className="mb-3 font-bold text-primary">Accesos de ejemplo</h3>
+            <dl className="grid grid-cols-2 gap-4">
+              {CUENTAS.filter((c) => c.dni === "30111222" || c.rol === "Gerente").map((c) => (
+                <div key={c.dni} className="space-y-1">
+                  <dt className="font-bold">{c.rol}</dt>
+                  <dd>DNI: <span className="font-mono">{c.dni}</span></dd>
+                  <dd>Contraseña:<br /><span className="font-mono">{c.password}</span></dd>
+                </div>
+              ))}
+            </dl>
+          </section>
         </form>
       </main>
     </div>
