@@ -14,3 +14,4 @@
 - Model transient prototype failures with a per-screen attempt tracker, separate from business validation; retries must reach the success state without demo controls in the UI.
 - Own users, personnel records and attendance in the index screen's shared in-memory state so role switches can read the same attendance without introducing persistence.
 - Resolve Personal attendance through the authenticated account's explicit personnel-record ID using the shared browser-safe attendance module; never accept a personnel selector from Personal.
+- Keep failed manager-operation feedback inside the active form or dialog and preserve drafts for retry; close dialogs only on success so errors cannot be hidden by overlays.

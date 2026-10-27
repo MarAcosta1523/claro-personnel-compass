@@ -11,6 +11,6 @@
 - [x] Verify linked attendance through Personal and Gerente screens and tests.
 
 # Password icons and operation feedback
-- [ ] Verify unslashed eyes for hidden passwords and slashed eyes for visible passwords in all three fields.
-- [ ] Make errors visible beside the active form or dialog, retaining input for retry, and verify success for user, ficha and attendance operations.
-- [ ] Run operation tests and verify the screens in the browser.
+- [x] Verify unslashed eyes for hidden passwords and slashed eyes for visible passwords in all three fields.
+- [x] Make errors visible beside the active form or dialog, retaining input for retry, and verify success for user, ficha and attendance operations.
+- [x] Run operation tests and verify the screens in the browser.
