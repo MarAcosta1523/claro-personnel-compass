@@ -7,7 +7,7 @@ export type Cuenta = {
   password: string;
   nombre: string;
   rol: Rol;
-  fichaId?: number;
+  fichaId?: number | undefined;
   suspendida?: boolean;
   ultimo: Registro | null;
 };
