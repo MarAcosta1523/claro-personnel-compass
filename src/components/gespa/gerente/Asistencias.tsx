@@ -5,6 +5,7 @@ import { IconAlerta, IconCalendario, IconConsultar, IconEntrada, IconHistorial, 
 import { Aviso, Boton, Campo, Dialogo, Encabezado, Etiqueta, PieAcciones, Select, Spinner, Vacio, inputG, tdCls, thCls } from "./ui";
 import type { Notificar } from "./PanelGerente";
 import { createAttemptTracker } from "../prototype";
+import { Mensaje } from "../Mensaje";
 
 type Props = {
   fichas: Ficha[]; asistencias: Asistencia[]; setAsistencias: (a: Asistencia[]) => void;
@@ -23,6 +24,7 @@ export function Asistencias({ fichas, asistencias, setAsistencias, correcciones,
   const [verHistorial, setVerHistorial] = useState(false);
   const [procesando, setProcesando] = useState(false);
   const [fallar] = useState(createAttemptTracker);
+  const [errorOperacion, setErrorOperacion] = useState<string | null>(null);
 
   const consultar = () => {
     if (!desde || !hasta) return setErrorFiltro("Completá las dos fechas del período.");
@@ -44,10 +46,11 @@ export function Asistencias({ fichas, asistencias, setAsistencias, correcciones,
 
   const guardarEdicion = (nuevo: Asistencia) => {
     if (!editar) return;
+    setErrorOperacion(null);
     setProcesando(true);
     setTimeout(() => {
       setProcesando(false);
-      if (fallar("modificar")) { notificar("error", "No se pudo modificar la asistencia", "Intentá de nuevo."); setEditar(null); return; }
+      if (fallar("modificar")) { setErrorOperacion("No se pudo modificar la asistencia. Intentá de nuevo."); return; }
       const cambios: Correccion[] = [];
       const cuando = ahoraIso();
       const campos: [keyof Asistencia, string][] = [["fecha", "Fecha"], ["hora", "Hora"], ["tipo", "Tipo de marca"], ["observacion", "Observación"]];
@@ -63,10 +66,11 @@ export function Asistencias({ fichas, asistencias, setAsistencias, correcciones,
 
   const confirmarSuspension = () => {
     if (!suspender) return;
+    setErrorOperacion(null);
     setProcesando(true);
     setTimeout(() => {
       setProcesando(false);
-      if (fallar("suspender")) { notificar("error", "No se pudo suspender la asistencia", "Intentá de nuevo."); setSuspender(null); return; }
+      if (fallar("suspender")) { setErrorOperacion("No se pudo suspender la asistencia. Intentá de nuevo."); return; }
       setAsistencias(asistencias.map((a) => (a.id === suspender.id ? { ...a, suspendida: true } : a)));
       setCorrecciones([{ id: Date.now(), asistenciaId: suspender.id, dato: "Estado", anterior: "Vigente", nuevo: "Suspendido", cuando: ahoraIso(), gerente }, ...correcciones]);
       notificar("exito", "La asistencia fue suspendida");
@@ -122,8 +126,8 @@ export function Asistencias({ fichas, asistencias, setAsistencias, correcciones,
                         </td>
                         <td className={cn(tdCls, "text-right")}>
                           <div className="inline-flex gap-1">
-                            <Boton disabled={r.suspendida} onClick={() => setEditar(r)} title="Modificar" aria-label={`Modificar registro del ${isoAFecha(r.fecha)} ${r.hora}`} className="inline-flex h-10 items-center gap-1.5 rounded-md border-2 border-input bg-card px-2.5 text-sm font-bold hover:border-primary disabled:opacity-30"><IconModificar size={18} />Modificar</Boton>
-                            <Boton disabled={r.suspendida} onClick={() => setSuspender(r)} title="Suspender" aria-label={`Suspender registro del ${isoAFecha(r.fecha)} ${r.hora}`} className="inline-flex h-10 w-10 px-0 items-center justify-center rounded-md border-2 border-input bg-card text-destructive hover:border-destructive disabled:opacity-30"><IconSuspender size={18} /></Boton>
+                            <Boton disabled={r.suspendida} onClick={() => { setErrorOperacion(null); setEditar(r); }} title="Modificar" aria-label={`Modificar registro del ${isoAFecha(r.fecha)} ${r.hora}`} className="inline-flex h-10 items-center gap-1.5 rounded-md border-2 border-input bg-card px-2.5 text-sm font-bold hover:border-primary disabled:opacity-30"><IconModificar size={18} />Modificar</Boton>
+                            <Boton disabled={r.suspendida} onClick={() => { setErrorOperacion(null); setSuspender(r); }} title="Suspender" aria-label={`Suspender registro del ${isoAFecha(r.fecha)} ${r.hora}`} className="inline-flex h-10 w-10 px-0 items-center justify-center rounded-md border-2 border-input bg-card text-destructive hover:border-destructive disabled:opacity-30"><IconSuspender size={18} /></Boton>
                           </div>
                         </td>
                       </tr>
@@ -146,12 +150,14 @@ export function Asistencias({ fichas, asistencias, setAsistencias, correcciones,
       )}
 
       <Dialogo abierto={!!editar} titulo="Modificar asistencia" icono={<IconModificar size={24} />} onCerrar={() => !procesando && setEditar(null)}>
+        {errorOperacion && <div className="mb-4"><Mensaje tipo="error" titulo={errorOperacion} onCerrar={() => setErrorOperacion(null)} /></div>}
         {editar && <FormAsistencia key={editar.id} inicial={editar} persona={nombre(editar.fichaId)} otros={asistencias.filter((a) => a.fichaId === editar.fichaId && a.id !== editar.id && !a.suspendida)} procesando={procesando} onCancelar={() => setEditar(null)} onGuardar={guardarEdicion} />}
       </Dialogo>
 
       <Dialogo abierto={!!suspender} titulo="¿Suspender este registro?" icono={<IconSuspender size={24} className="text-destructive" />} onCerrar={() => !procesando && setSuspender(null)}>
         {suspender && (
           <div className="space-y-4">
+            {errorOperacion && <Mensaje tipo="error" titulo={errorOperacion} onCerrar={() => setErrorOperacion(null)} />}
             <p className="text-base"><b>{nombre(suspender.fichaId)}</b> · {suspender.tipo === "entrada" ? "Entrada" : "Salida"} del {isoAFecha(suspender.fecha)} a las {suspender.hora}.</p>
             <PieAcciones onCancelar={() => setSuspender(null)} onConfirmar={confirmarSuspension} textoConfirmar="Sí, suspender" peligro cargando={procesando} />
           </div>
@@ -214,7 +220,7 @@ function FormAsistencia({ inicial, persona, otros, procesando, onCancelar, onGua
   return (
     <div className="space-y-4">
       <p className="text-base">Registro de <b>{persona}</b></p>
-      {e.general && <div role="alert" className="flex items-start gap-2 rounded-lg border-2 border-destructive bg-destructive-soft px-3 py-2 text-[15px] font-bold text-destructive"><IconAlerta size={20} className="shrink-0" />{e.general}</div>}
+      {(e.general || e.fecha || e.hora) && <div role="alert" className="flex items-start gap-2 rounded-lg border-2 border-destructive bg-destructive-soft px-3 py-2 text-[15px] font-bold text-destructive"><IconAlerta size={20} className="shrink-0" />{e.general || e.fecha || e.hora}</div>}
       <fieldset disabled={procesando} className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
           <Campo id="m-fecha" label="Fecha" requerido error={e.fecha}><input id="m-fecha" type="date" value={f.fecha} onChange={(v) => { setF({ ...f, fecha: v.target.value }); setE({}); }} className={inputG(e.fecha)} /></Campo>

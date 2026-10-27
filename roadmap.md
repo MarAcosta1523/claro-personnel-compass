@@ -9,3 +9,8 @@
 - [x] Link Personal sign-in and attendance to the account's personnel record.
 - [x] Restore the example access guide by role and check task-only screen content.
 - [x] Verify linked attendance through Personal and Gerente screens and tests.
+
+# Password icons and operation feedback
+- [x] Verify unslashed eyes for hidden passwords and slashed eyes for visible passwords in all three fields.
+- [x] Make errors visible beside the active form or dialog, retaining input for retry, and verify success for user, ficha and attendance operations.
+- [x] Run operation tests and verify the screens in the browser.
