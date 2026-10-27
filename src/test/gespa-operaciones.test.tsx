@@ -78,7 +78,7 @@ describe("Operaciones de gestión", () => {
     expect(cambio).toHaveBeenCalledTimes(1);
     expect(cambio.mock.calls[0]?.[0]).toEqual(expect.arrayContaining([expect.objectContaining({ id: 1, hora: "08:01", observacion: "Hora corregida" })]));
     expect(notificar).toHaveBeenLastCalledWith("exito", expect.any(String), expect.any(String));
-    fireEvent.click(screen.getAllByRole("button", { name: /Suspender registro del/ })[0] as HTMLElement);
+    fireEvent.click(screen.getByRole("button", { name: "Suspender registro del 13/10/2026 08:01" }));
     fireEvent.click(screen.getByRole("button", { name: "Sí, suspender" })); avanzar();
     expect(cambio).toHaveBeenCalledTimes(1);
     fireEvent.click(screen.getByRole("button", { name: "Sí, suspender" })); avanzar();

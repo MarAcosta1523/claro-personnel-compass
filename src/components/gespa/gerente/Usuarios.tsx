@@ -134,19 +134,19 @@ export function Usuarios({ usuarios, setUsuarios, notificar }: { usuarios: Usuar
               editando={modo.t === "editar"}
               dnisOcupados={usuarios.filter((u) => u.id !== sel?.id || modo.t === "nuevo").map((u) => u.dni)}
               procesando={procesando}
-              onCancelar={() => setModo(sel && modo.t === "editar" ? { t: "ver", id: sel.id } : { t: "nada" })}
+              onCancelar={() => { setErrorOperacion(null); setModo(sel && modo.t === "editar" ? { t: "ver", id: sel.id } : { t: "nada" }); }}
               onGuardar={guardar}
             />
           )}
         </aside>
       </div>
 
-      <Dialogo abierto={!!suspender} titulo="¿Suspender este usuario?" icono={<IconSuspender size={24} className="text-destructive" />} onCerrar={() => !procesando && setSuspender(null)}>
+      <Dialogo abierto={!!suspender} titulo="¿Suspender este usuario?" icono={<IconSuspender size={24} className="text-destructive" />} onCerrar={() => { if (!procesando) { setErrorOperacion(null); setSuspender(null); } }}>
         {suspender && (
           <div className="space-y-4">
             {errorOperacion && <Mensaje tipo="error" titulo={errorOperacion} onCerrar={() => setErrorOperacion(null)} />}
             <p className="text-base">Vas a suspender la cuenta de <b>{suspender.nombre} {suspender.apellido}</b> (DNI {suspender.dni}).</p>
-            <PieAcciones onCancelar={() => setSuspender(null)} onConfirmar={confirmarSuspension} textoConfirmar="Sí, suspender" peligro cargando={procesando} />
+            <PieAcciones onCancelar={() => { setErrorOperacion(null); setSuspender(null); }} onConfirmar={confirmarSuspension} textoConfirmar="Sí, suspender" peligro cargando={procesando} />
           </div>
         )}
       </Dialogo>
