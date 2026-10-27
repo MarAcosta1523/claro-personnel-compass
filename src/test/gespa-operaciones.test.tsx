@@ -38,7 +38,7 @@ describe("Operaciones de gestión", () => {
     expect(cambio).toHaveBeenCalledTimes(1);
     expect(cambio.mock.calls[0]?.[0]).toEqual(expect.arrayContaining([expect.objectContaining({ nombre: "Elena", dni: "40123456" })]));
     expect(notificar).toHaveBeenLastCalledWith("exito", expect.any(String), expect.any(String));
-    fireEvent.click(screen.getByRole("button", { name: "Modificar", exact: true }));
+    fireEvent.click(screen.getByRole("button", { name: /^Modificar$/ }));
     fireEvent.change(screen.getByLabelText(/^Nombre/), { target: { value: "Elena María" } });
     fireEvent.click(screen.getByRole("button", { name: "Confirmar" })); avanzar();
     expect(cambio).toHaveBeenCalledTimes(1);
@@ -46,7 +46,7 @@ describe("Operaciones de gestión", () => {
     expect(cambio).toHaveBeenCalledTimes(2);
     expect(cambio.mock.calls[1]?.[0]).toEqual(expect.arrayContaining([expect.objectContaining({ nombre: "Elena María" })]));
     expect(notificar).toHaveBeenLastCalledWith("exito", expect.any(String), expect.any(String));
-    fireEvent.click(screen.getByRole("button", { name: "Suspender", exact: true }));
+    fireEvent.click(screen.getByRole("button", { name: /^Suspender$/ }));
     fireEvent.click(screen.getByRole("button", { name: "Sí, suspender" })); avanzar();
     expect(cambio).toHaveBeenCalledTimes(2);
     fireEvent.click(screen.getByRole("button", { name: "Sí, suspender" })); avanzar();
