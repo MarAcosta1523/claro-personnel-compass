@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Login } from "@/components/gespa/Login";
 import { InicioPersonal } from "@/components/gespa/InicioPersonal";
 import { PanelGerente } from "@/components/gespa/gerente/PanelGerente";
-import type { Cuenta } from "@/components/gespa/data";
+import { ASISTENCIAS, FICHAS, USUARIOS, type Cuenta } from "@/components/gespa/data";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -19,11 +19,14 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-function Index() {
+export function Index() {
   const [cuenta, setCuenta] = useState<Cuenta | null>(null);
+  const [usuarios, setUsuarios] = useState(USUARIOS);
+  const [fichas, setFichas] = useState(FICHAS);
+  const [asistencias, setAsistencias] = useState(ASISTENCIAS);
   return (
     <div className="min-w-[1280px]">
-      {cuenta?.rol === "Gerente" ? <PanelGerente key={cuenta.dni} cuenta={cuenta} onSalir={() => setCuenta(null)} /> : cuenta ? <InicioPersonal key={cuenta.dni} cuenta={cuenta} onSalir={() => setCuenta(null)} /> : <Login onIngresar={setCuenta} />}
+      {cuenta?.rol === "Gerente" ? <PanelGerente key={cuenta.dni} cuenta={cuenta} onSalir={() => setCuenta(null)} usuarios={usuarios} setUsuarios={setUsuarios} fichas={fichas} setFichas={setFichas} asistencias={asistencias} setAsistencias={setAsistencias} /> : cuenta ? <InicioPersonal key={cuenta.dni} cuenta={cuenta} fichas={fichas} asistencias={asistencias} onRegistrar={(r) => setAsistencias((prev) => [...prev, r])} onSalir={() => setCuenta(null)} /> : <Login onIngresar={setCuenta} usuarios={usuarios} fichas={fichas} />}
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react";
 import logo from "@/assets/logo-gespa.png";
 import { cn } from "@/lib/utils";
-import { ASISTENCIAS, COPIAS, CORRECCIONES, FICHAS, USUARIOS, analizar, isoAFecha, type Cuenta } from "../data";
+import { COPIAS, CORRECCIONES, analizar, isoAFecha, type Asistencia, type Cuenta, type Ficha, type Usuario } from "../data";
 import { IconAlerta, IconCalendario, IconCopia, IconFicha, IconInicio, IconPerfil, IconSalida } from "../icons";
 import { Mensaje } from "../Mensaje";
 import { Usuarios } from "./Usuarios";
@@ -20,11 +20,13 @@ const MENU: { id: Seccion; t: string; icono: (s: number) => ReactNode }[] = [
   { id: "copias", t: "Copias de seguridad", icono: (s) => <IconCopia size={s} /> },
 ];
 
-export function PanelGerente({ cuenta, onSalir }: { cuenta: Cuenta; onSalir: () => void }) {
+export function PanelGerente({ cuenta, onSalir, usuarios, setUsuarios, fichas, setFichas, asistencias, setAsistencias }: {
+  cuenta: Cuenta; onSalir: () => void;
+  usuarios: Usuario[]; setUsuarios: (u: Usuario[]) => void;
+  fichas: Ficha[]; setFichas: (f: Ficha[]) => void;
+  asistencias: Asistencia[]; setAsistencias: (a: Asistencia[]) => void;
+}) {
   const [seccion, setSeccion] = useState<Seccion>("inicio");
-  const [usuarios, setUsuarios] = useState(USUARIOS);
-  const [fichas, setFichas] = useState(FICHAS);
-  const [asistencias, setAsistencias] = useState(ASISTENCIAS);
   const [correcciones, setCorrecciones] = useState(CORRECCIONES);
   const [copias, setCopias] = useState(COPIAS);
   const [msg, setMsg] = useState<{ tipo: "exito" | "error"; titulo: string; detalle?: string | undefined } | null>(null);

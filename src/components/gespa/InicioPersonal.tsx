@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import logo from "@/assets/logo-gespa.png";
-import { fmtCorta, fmtFecha, fmtHora, type Cuenta, type Registro, type Tipo } from "./data";
+import { fmtCorta, fmtFecha, fmtHora, type Asistencia, type Cuenta, type Ficha, type Registro, type Tipo } from "./data";
+import { crearAsistenciaPersonal, fichaVinculada } from "./asistencia-personal";
 import { IconEntrada, IconHistorial, IconNota, IconPerfil, IconSalida } from "./icons";
 import { Mensaje } from "./Mensaje";
 import { cn } from "@/lib/utils";
@@ -9,11 +10,15 @@ import { createAttemptTracker } from "./prototype";
 
 type Resultado = { tipo: "exito" | "error"; titulo: string; detalle: string } | null;
 
-export function InicioPersonal({ cuenta, onSalir }: { cuenta: Cuenta; onSalir: () => void }) {
+export function InicioPersonal({ cuenta, fichas, asistencias, onRegistrar, onSalir }: { cuenta: Cuenta; fichas: Ficha[]; asistencias: Asistencia[]; onRegistrar: (r: Asistencia) => void; onSalir: () => void }) {
   const [ahora, setAhora] = useState<Date | null>(null);
   const [tipo, setTipo] = useState<Tipo | null>(null);
   const [obs, setObs] = useState("");
-  const [ultimo, setUltimo] = useState<Registro | null>(cuenta.ultimo);
+  const [ultimo, setUltimo] = useState<Registro | null>(() => {
+    const r = asistencias.filter((a) => a.fichaId === cuenta.fichaId && !a.suspendida).sort((a, b) => `${b.fecha} ${b.hora}`.localeCompare(`${a.fecha} ${a.hora}`))[0];
+    const guardado = r ? { tipo: r.tipo, fecha: new Date(`${r.fecha}T${r.hora}:00`) } : null;
+    return guardado && (!cuenta.ultimo || guardado.fecha > cuenta.ultimo.fecha) ? guardado : cuenta.ultimo;
+  });
   const [resultado, setResultado] = useState<Resultado>(null);
   const [procesando, setProcesando] = useState(false);
   const [fallar] = useState(createAttemptTracker);
@@ -30,6 +35,10 @@ export function InicioPersonal({ cuenta, onSalir }: { cuenta: Cuenta; onSalir: (
     setResultado(null);
     setTimeout(() => {
       setProcesando(false);
+      if (!fichaVinculada(cuenta, fichas)) {
+        setResultado({ tipo: "error", titulo: "No se pudo registrar la asistencia", detalle: "Consultá con el Gerente." });
+        return;
+      }
       if (ultimo && ultimo.tipo === tipo) {
         setResultado({
           tipo: "error",
@@ -50,6 +59,8 @@ export function InicioPersonal({ cuenta, onSalir }: { cuenta: Cuenta; onSalir: (
         return;
       }
       const nuevo = { tipo, fecha: new Date() };
+      const registro = crearAsistenciaPersonal(cuenta, fichas, asistencias, tipo, obs, nuevo.fecha);
+      onRegistrar(registro);
       setUltimo(nuevo);
       setResultado({
         tipo: "exito",
