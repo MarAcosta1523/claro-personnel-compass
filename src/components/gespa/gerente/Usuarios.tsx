@@ -97,7 +97,7 @@ export function Usuarios({ usuarios, setUsuarios, notificar }: { usuarios: Usuar
                         <td className={cn(tdCls, "font-mono")}>{u.dni}</td>
                         <td className={tdCls}>{u.rol}</td>
                         <td className={tdCls}>{u.estado === "activo" ? <Etiqueta tono="activo" icono={<IconCheck size={14} />}>Activo</Etiqueta> : <Etiqueta tono="suspendido" icono={<IconCandado size={14} />}>Suspendido</Etiqueta>}</td>
-                        <td className={tdCls}><div className="flex gap-1" onClick={(e) => e.stopPropagation()}><Boton title="Consultar" aria-label={`Consultar usuario ${u.nombre} ${u.apellido}`} className="h-10 w-10 px-0" onClick={() => { setErrorOperacion(null); setModo({ t: "ver", id: u.id }); }}><IconConsultar size={18} /></Boton><Boton title="Modificar" aria-label={`Modificar usuario ${u.nombre} ${u.apellido}`} className="h-10 w-10 px-0" onClick={() => { setErrorOperacion(null); setModo({ t: "editar", id: u.id }); }}><IconModificar size={18} /></Boton><Boton variante="peligro" title="Suspender" aria-label={`Suspender usuario ${u.nombre} ${u.apellido}`} className="h-10 w-10 px-0" disabled={u.estado === "suspendido"} onClick={() => { setErrorOperacion(null); setSuspender(u); }}><IconSuspender size={18} /></Boton></div></td>
+                        <td className={tdCls}><div className="flex gap-1" onClick={(e) => e.stopPropagation()}><Boton title="Consultar" aria-label={`Consultar usuario ${u.nombre} ${u.apellido}`} className="h-10 w-10 px-0" onClick={() => { setErrorOperacion(null); setModo({ t: "ver", id: u.id }); }}><IconConsultar size={18} /></Boton><Boton title="Modificar" aria-label={`Modificar usuario ${u.nombre} ${u.apellido}`} className="h-10 w-10 px-0" onClick={() => { setErrorOperacion(null); setModo({ t: "editar", id: u.id }); }}><IconModificar size={18} /></Boton><Boton variante="peligro" title="Suspender" aria-label={`Suspender usuario ${u.nombre} ${u.apellido}`} className="h-10 w-10 px-0" onClick={() => { setErrorOperacion(null); if (u.estado === "suspendido") return notificar("error", "El usuario ya se encuentra suspendido"); setSuspender(u); }}><IconSuspender size={18} /></Boton></div></td>
                       </tr>
                     );
                   })}
@@ -123,7 +123,7 @@ export function Usuarios({ usuarios, setUsuarios, notificar }: { usuarios: Usuar
               </dl>
               <div className="grid grid-cols-2 gap-3">
                 <Boton icono={<IconModificar size={20} />} onClick={() => { setErrorOperacion(null); setModo({ t: "editar", id: sel.id }); }}>Modificar</Boton>
-                <Boton variante="peligro" icono={<IconSuspender size={20} />} disabled={sel.estado === "suspendido"} onClick={() => { setErrorOperacion(null); setSuspender(sel); }}>Suspender</Boton>
+                <Boton variante="peligro" icono={<IconSuspender size={20} />} onClick={() => { setErrorOperacion(null); if (sel.estado === "suspendido") return notificar("error", "El usuario ya se encuentra suspendido"); setSuspender(sel); }}>Suspender</Boton>
               </div>
             </div>
           )}

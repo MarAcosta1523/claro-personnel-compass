@@ -22,6 +22,7 @@ export function Asistencias({ fichas, asistencias, setAsistencias, correcciones,
   const [editar, setEditar] = useState<Asistencia | null>(null);
   const [suspender, setSuspender] = useState<Asistencia | null>(null);
   const [verHistorial, setVerHistorial] = useState(false);
+  const [completar, setCompletar] = useState<Asistencia | null>(null);
   const [procesando, setProcesando] = useState(false);
   const [fallar] = useState(createAttemptTracker);
   const [errorOperacion, setErrorOperacion] = useState<string | null>(null);
@@ -61,6 +62,21 @@ export function Asistencias({ fichas, asistencias, setAsistencias, correcciones,
       setCorrecciones([...cambios, ...correcciones]);
       notificar("exito", "La asistencia fue modificada", "Se guardaron los cambios.");
       setEditar(null);
+    }, 700);
+  };
+
+  const guardarCompletar = (nuevo: Asistencia) => {
+    setErrorOperacion(null);
+    setProcesando(true);
+    setTimeout(() => {
+      setProcesando(false);
+      if (fallar("completar")) { setErrorOperacion("No se pudo completar el registro. Intentá de nuevo."); return; }
+      const id = Math.max(0, ...asistencias.map((a) => a.id)) + 1;
+      const reg = { ...nuevo, id };
+      setAsistencias([...asistencias, reg]);
+      setCorrecciones([{ id: Date.now(), asistenciaId: id, dato: "Marca agregada", anterior: "", nuevo: `${reg.tipo === "entrada" ? "Entrada" : "Salida"} ${reg.hora}`, cuando: ahoraIso(), gerente }, ...correcciones]);
+      notificar("exito", "El registro quedó completo", `Se agregó la ${reg.tipo} de las ${reg.hora}.`);
+      setCompletar(null);
     }, 700);
   };
 
@@ -126,8 +142,9 @@ export function Asistencias({ fichas, asistencias, setAsistencias, correcciones,
                         </td>
                         <td className={cn(tdCls, "text-right")}>
                           <div className="inline-flex gap-1">
+                            {inc && !r.suspendida && <Boton variante="primario" onClick={() => { setErrorOperacion(null); setCompletar(r); }} aria-label={`Completar registro del ${isoAFecha(r.fecha)} ${r.hora}`} className="h-10 px-2.5 text-sm">{r.tipo === "entrada" ? <IconSalida size={18} /> : <IconEntrada size={18} />}Completar</Boton>}
                             <Boton disabled={r.suspendida} onClick={() => { setErrorOperacion(null); setEditar(r); }} title="Modificar" aria-label={`Modificar registro del ${isoAFecha(r.fecha)} ${r.hora}`} className="inline-flex h-10 items-center gap-1.5 rounded-md border-2 border-input bg-card px-2.5 text-sm font-bold hover:border-primary disabled:opacity-30"><IconModificar size={18} />Modificar</Boton>
-                            <Boton disabled={r.suspendida} onClick={() => { setErrorOperacion(null); setSuspender(r); }} title="Suspender" aria-label={`Suspender registro del ${isoAFecha(r.fecha)} ${r.hora}`} className="inline-flex h-10 w-10 px-0 items-center justify-center rounded-md border-2 border-input bg-card text-destructive hover:border-destructive disabled:opacity-30"><IconSuspender size={18} /></Boton>
+                            <Boton onClick={() => { setErrorOperacion(null); if (r.suspendida) return notificar("error", "El registro ya se encuentra suspendido"); setSuspender(r); }} title="Suspender" aria-label={`Suspender registro del ${isoAFecha(r.fecha)} ${r.hora}`} className="inline-flex h-10 w-10 px-0 items-center justify-center rounded-md border-2 border-input bg-card text-destructive hover:border-destructive disabled:opacity-30"><IconSuspender size={18} /></Boton>
                           </div>
                         </td>
                       </tr>
@@ -154,6 +171,11 @@ export function Asistencias({ fichas, asistencias, setAsistencias, correcciones,
         {editar && <FormAsistencia key={editar.id} inicial={editar} persona={nombre(editar.fichaId)} otros={asistencias.filter((a) => a.fichaId === editar.fichaId && a.id !== editar.id && !a.suspendida)} procesando={procesando} onCancelar={() => setEditar(null)} onGuardar={guardarEdicion} />}
       </Dialogo>
 
+      <Dialogo abierto={!!completar} titulo="Completar registro" icono={<IconModificar size={24} />} onCerrar={() => !procesando && setCompletar(null)}>
+        {errorOperacion && <div className="mb-4"><Mensaje tipo="error" titulo={errorOperacion} onCerrar={() => setErrorOperacion(null)} /></div>}
+        {completar && <FormCompletar key={completar.id} base={completar} persona={nombre(completar.fichaId)} otros={asistencias.filter((a) => a.fichaId === completar.fichaId && a.fecha === completar.fecha && !a.suspendida)} procesando={procesando} onCancelar={() => setCompletar(null)} onGuardar={guardarCompletar} />}
+      </Dialogo>
+
       <Dialogo abierto={!!suspender} titulo="¿Suspender este registro?" icono={<IconSuspender size={24} className="text-destructive" />} onCerrar={() => !procesando && setSuspender(null)}>
         {suspender && (
           <div className="space-y-4">
@@ -166,7 +188,7 @@ export function Asistencias({ fichas, asistencias, setAsistencias, correcciones,
 
       <Dialogo abierto={verHistorial} titulo="Historial de correcciones" icono={<IconHistorial size={24} />} onCerrar={() => setVerHistorial(false)} ancho="max-w-4xl">
         {histVisible.length === 0 ? (
-          <Vacio icono={<IconHistorial size={40} />} titulo="No hay correcciones en este período"  />
+          <Vacio icono={<IconHistorial size={40} />} titulo="No hay historial de correcciones"  />
         ) : (
           <div className="max-h-[420px] overflow-auto rounded-xl border-2">
             <table className="w-full">
@@ -211,7 +233,7 @@ function FormAsistencia({ inicial, persona, otros, procesando, onCancelar, onGua
       const prev = dia[i - 1], next = dia[i + 1];
       if ((prev && prev.hora === f.hora) || (next && next.hora === f.hora)) x.general = "Ya hay otro registro a esa misma hora ese día.";
       else if (f.tipo === "salida" && prev?.tipo === "salida") x.general = "No se pudo modificar la salida. Revisá el registro anterior.";
-      else if (f.tipo === "salida" && !prev && next?.tipo === "entrada") x.general = "No se pudo modificar la salida. Revisá la hora de entrada.";
+      else if (f.tipo === "salida" && !prev && next?.tipo === "entrada") x.general = "La salida no puede ser anterior a la entrada.";
       else if (f.tipo === "entrada" && next?.tipo === "entrada") x.general = "No se pudo modificar la entrada. Revisá el registro siguiente.";
     }
     setE(x);
@@ -240,6 +262,39 @@ function FormAsistencia({ inicial, persona, otros, procesando, onCancelar, onGua
         <Campo id="m-obs" label="Observación"><input id="m-obs" value={f.observacion} maxLength={120} onChange={(v) => setF({ ...f, observacion: v.target.value })} className={inputG()} /></Campo>
       </fieldset>
       
+      <PieAcciones onCancelar={onCancelar} onConfirmar={validar} cargando={procesando} />
+    </div>
+  );
+}
+
+function FormCompletar({ base, persona, otros, procesando, onCancelar, onGuardar }: {
+  base: Asistencia; persona: string; otros: Asistencia[]; procesando: boolean; onCancelar: () => void; onGuardar: (a: Asistencia) => void;
+}) {
+  const tipo: Tipo = base.tipo === "entrada" ? "salida" : "entrada";
+  const [hora, setHora] = useState("");
+  const [obs, setObs] = useState("");
+  const [error, setError] = useState("");
+  const validar = () => {
+    if (!hora) return setError("Completá la hora.");
+    if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(hora)) return setError("Usá el formato HH:MM, por ejemplo 14:00.");
+    if (otros.some((o) => o.hora === hora)) return setError("Ya hay otro registro a esa misma hora ese día.");
+    if (tipo === "salida" && hora <= base.hora) return setError(`La salida debe ser posterior a la entrada de las ${base.hora}.`);
+    if (tipo === "entrada" && hora >= base.hora) return setError(`La entrada debe ser anterior a la salida de las ${base.hora}.`);
+    const nuevo: Asistencia = { id: 0, fichaId: base.fichaId, fecha: base.fecha, hora, tipo, observacion: obs.trim() };
+    const { incompletos } = analizar([...otros, nuevo]);
+    if (incompletos.has(base.id) || incompletos.has(0)) return setError("Con esa hora el registro sigue incompleto. Revisá los registros del día.");
+    setError("");
+    onGuardar(nuevo);
+  };
+  const etiqueta = tipo === "salida" ? "Hora de salida" : "Hora de entrada";
+  return (
+    <div className="space-y-4">
+      <p className="text-base"><b>{persona}</b> · {base.tipo === "entrada" ? "Entrada" : "Salida"} del {isoAFecha(base.fecha)} a las {base.hora}</p>
+      {error && <div role="alert" className="flex items-start gap-2 rounded-lg border-2 border-destructive bg-destructive-soft px-3 py-2 text-[15px] font-bold text-destructive"><IconAlerta size={20} className="shrink-0" />{error}</div>}
+      <fieldset disabled={procesando} className="space-y-4">
+        <Campo id="c-hora" label={etiqueta} requerido error={error || undefined} ayuda="Formato 24 h, ej.: 14:00"><input id="c-hora" value={hora} placeholder="HH:MM" onChange={(v) => { setHora(v.target.value); setError(""); }} className={cn(inputG(error), "font-mono")} /></Campo>
+        <Campo id="c-obs" label="Observación"><input id="c-obs" value={obs} maxLength={120} onChange={(v) => setObs(v.target.value)} className={inputG()} /></Campo>
+      </fieldset>
       <PieAcciones onCancelar={onCancelar} onConfirmar={validar} cargando={procesando} />
     </div>
   );
