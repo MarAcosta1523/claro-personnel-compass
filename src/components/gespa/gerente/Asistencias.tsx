@@ -292,7 +292,7 @@ function FormCompletar({ base, persona, otros, procesando, onCancelar, onGuardar
       <p className="text-base"><b>{persona}</b> · {base.tipo === "entrada" ? "Entrada" : "Salida"} del {isoAFecha(base.fecha)} a las {base.hora}</p>
       {error && <div role="alert" className="flex items-start gap-2 rounded-lg border-2 border-destructive bg-destructive-soft px-3 py-2 text-[15px] font-bold text-destructive"><IconAlerta size={20} className="shrink-0" />{error}</div>}
       <fieldset disabled={procesando} className="space-y-4">
-        <Campo id="c-hora" label={etiqueta} requerido error={error || undefined} ayuda="Formato 24 h, ej.: 14:00"><input id="c-hora" value={hora} placeholder="HH:MM" onChange={(v) => { setHora(v.target.value); setError(""); }} className={cn(inputG(error), "font-mono")} /></Campo>
+        <Campo id="c-hora" label={etiqueta} requerido ayuda="Formato 24 h, ej.: 14:00"><input id="c-hora" value={hora} placeholder="HH:MM" onChange={(v) => { setHora(v.target.value); setError(""); }} className={cn(inputG(error), "font-mono")} /></Campo>
         <Campo id="c-obs" label="Observación"><input id="c-obs" value={obs} maxLength={120} onChange={(v) => setObs(v.target.value)} className={inputG()} /></Campo>
       </fieldset>
       <PieAcciones onCancelar={onCancelar} onConfirmar={validar} cargando={procesando} />
