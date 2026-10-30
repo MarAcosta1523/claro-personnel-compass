@@ -13,4 +13,4 @@
 # Password icons and operation feedback
 - [x] Verify unslashed eyes for hidden passwords and slashed eyes for visible passwords in all three fields.
 - [x] Make errors visible beside the active form or dialog, retaining input for retry, and verify success for user, ficha and attendance operations.
-- [x] Run operation tests and verify the screens in the browser.
+- [x] Run operation tests and verify the screens in the browser.- [ ] Aplicar CU01–CU12 del documento Word (mensajes de éxito/error, secuencias alternativas, actividad registrar asistencia)
