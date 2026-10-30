@@ -144,7 +144,7 @@ export function Asistencias({ fichas, asistencias, setAsistencias, correcciones,
                           <div className="inline-flex gap-1">
                             {inc && !r.suspendida && <Boton variante="primario" onClick={() => { setErrorOperacion(null); setCompletar(r); }} aria-label={`Completar registro del ${isoAFecha(r.fecha)} ${r.hora}`} className="h-10 px-2.5 text-sm">{r.tipo === "entrada" ? <IconSalida size={18} /> : <IconEntrada size={18} />}Completar</Boton>}
                             <Boton disabled={r.suspendida} onClick={() => { setErrorOperacion(null); setEditar(r); }} title="Modificar" aria-label={`Modificar registro del ${isoAFecha(r.fecha)} ${r.hora}`} className="inline-flex h-10 items-center gap-1.5 rounded-md border-2 border-input bg-card px-2.5 text-sm font-bold hover:border-primary disabled:opacity-30"><IconModificar size={18} />Modificar</Boton>
-                            <Boton disabled={r.suspendida} onClick={() => { setErrorOperacion(null); setSuspender(r); }} title="Suspender" aria-label={`Suspender registro del ${isoAFecha(r.fecha)} ${r.hora}`} className="inline-flex h-10 w-10 px-0 items-center justify-center rounded-md border-2 border-input bg-card text-destructive hover:border-destructive disabled:opacity-30"><IconSuspender size={18} /></Boton>
+                            <Boton onClick={() => { setErrorOperacion(null); if (r.suspendida) return notificar("error", "El registro ya se encuentra suspendido"); setSuspender(r); }} title="Suspender" aria-label={`Suspender registro del ${isoAFecha(r.fecha)} ${r.hora}`} className="inline-flex h-10 w-10 px-0 items-center justify-center rounded-md border-2 border-input bg-card text-destructive hover:border-destructive disabled:opacity-30"><IconSuspender size={18} /></Boton>
                           </div>
                         </td>
                       </tr>
@@ -188,7 +188,7 @@ export function Asistencias({ fichas, asistencias, setAsistencias, correcciones,
 
       <Dialogo abierto={verHistorial} titulo="Historial de correcciones" icono={<IconHistorial size={24} />} onCerrar={() => setVerHistorial(false)} ancho="max-w-4xl">
         {histVisible.length === 0 ? (
-          <Vacio icono={<IconHistorial size={40} />} titulo="No hay correcciones en este período"  />
+          <Vacio icono={<IconHistorial size={40} />} titulo="No hay historial de correcciones"  />
         ) : (
           <div className="max-h-[420px] overflow-auto rounded-xl border-2">
             <table className="w-full">
@@ -233,7 +233,7 @@ function FormAsistencia({ inicial, persona, otros, procesando, onCancelar, onGua
       const prev = dia[i - 1], next = dia[i + 1];
       if ((prev && prev.hora === f.hora) || (next && next.hora === f.hora)) x.general = "Ya hay otro registro a esa misma hora ese día.";
       else if (f.tipo === "salida" && prev?.tipo === "salida") x.general = "No se pudo modificar la salida. Revisá el registro anterior.";
-      else if (f.tipo === "salida" && !prev && next?.tipo === "entrada") x.general = "No se pudo modificar la salida. Revisá la hora de entrada.";
+      else if (f.tipo === "salida" && !prev && next?.tipo === "entrada") x.general = "La salida no puede ser anterior a la entrada.";
       else if (f.tipo === "entrada" && next?.tipo === "entrada") x.general = "No se pudo modificar la entrada. Revisá el registro siguiente.";
     }
     setE(x);

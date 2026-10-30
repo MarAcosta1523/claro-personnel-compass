@@ -79,7 +79,7 @@ export function Fichas({ fichas, setFichas, notificar }: { fichas: Ficha[]; setF
           </div>
           <p className="text-sm text-muted-foreground">{lista.length} de {fichas.length} fichas</p>
           {lista.length === 0 ? (
-            <Vacio icono={<IconFicha size={40} />} titulo="No se encontraron fichas" detalle="Probá con otro nombre o DNI, o cambiá el filtro." accion={<Boton onClick={() => { setQ(""); setFEstado("todos"); }}>Limpiar búsqueda</Boton>} />
+            <Vacio icono={<IconFicha size={40} />} titulo="No se encontró al personal solicitado" detalle="Probá con otro nombre o DNI, o cambiá el filtro." accion={<Boton onClick={() => { setQ(""); setFEstado("todos"); }}>Limpiar búsqueda</Boton>} />
           ) : (
             <div className="max-h-[440px] overflow-auto rounded-xl border-2 bg-card">
               <table className="w-full">
@@ -91,7 +91,7 @@ export function Fichas({ fichas, setFichas, notificar }: { fichas: Ficha[]; setF
                       <td className={cn(tdCls, "font-bold")}>{f.nombre} {f.apellido}</td>
                       <td className={cn(tdCls, "font-mono")}>{f.dni}</td>
                       <td className={tdCls}>{estadoTag(f)}</td>
-                      <td className={tdCls}><div className="flex gap-1" onClick={(e) => e.stopPropagation()}><Boton title="Consultar" aria-label={`Consultar ficha ${f.nombre} ${f.apellido}`} className="h-10 w-10 px-0" onClick={() => { setErrorOperacion(null); setModo({ t: "ver", id: f.id }); }}><IconConsultar size={18} /></Boton><Boton title="Modificar" aria-label={`Modificar ficha ${f.nombre} ${f.apellido}`} className="h-10 w-10 px-0" onClick={() => { setErrorOperacion(null); setModo({ t: "editar", id: f.id }); }}><IconModificar size={18} /></Boton><Boton variante="peligro" title="Suspender" aria-label={`Suspender ficha ${f.nombre} ${f.apellido}`} className="h-10 w-10 px-0" disabled={f.estado === "suspendida"} onClick={() => { setErrorOperacion(null); setSuspender(f); }}><IconSuspender size={18} /></Boton></div></td>
+                      <td className={tdCls}><div className="flex gap-1" onClick={(e) => e.stopPropagation()}><Boton title="Consultar" aria-label={`Consultar ficha ${f.nombre} ${f.apellido}`} className="h-10 w-10 px-0" onClick={() => { setErrorOperacion(null); setModo({ t: "ver", id: f.id }); }}><IconConsultar size={18} /></Boton><Boton title="Modificar" aria-label={`Modificar ficha ${f.nombre} ${f.apellido}`} className="h-10 w-10 px-0" onClick={() => { setErrorOperacion(null); setModo({ t: "editar", id: f.id }); }}><IconModificar size={18} /></Boton><Boton variante="peligro" title="Suspender" aria-label={`Suspender ficha ${f.nombre} ${f.apellido}`} className="h-10 w-10 px-0" onClick={() => { setErrorOperacion(null); if (f.estado === "suspendida") return notificar("error", "El personal ya se encuentra suspendido"); setSuspender(f); }}><IconSuspender size={18} /></Boton></div></td>
                     </tr>
                   ))}
                 </tbody>
@@ -116,7 +116,7 @@ export function Fichas({ fichas, setFichas, notificar }: { fichas: Ficha[]; setF
               </dl>
               <div className="grid grid-cols-2 gap-3">
                 <Boton icono={<IconModificar size={20} />} onClick={() => { setErrorOperacion(null); setModo({ t: "editar", id: sel.id }); }}>Modificar</Boton>
-                <Boton variante="peligro" icono={<IconSuspender size={20} />} disabled={sel.estado === "suspendida"} onClick={() => { setErrorOperacion(null); setSuspender(sel); }}>Suspender</Boton>
+                <Boton variante="peligro" icono={<IconSuspender size={20} />} onClick={() => { setErrorOperacion(null); if (sel.estado === "suspendida") return notificar("error", "El personal ya se encuentra suspendido"); setSuspender(sel); }}>Suspender</Boton>
               </div>
             </div>
           )}
