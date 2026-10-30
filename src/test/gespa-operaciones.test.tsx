@@ -1,4 +1,4 @@
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Usuarios } from "@/components/gespa/gerente/Usuarios";
@@ -85,5 +85,32 @@ describe("Operaciones de gestión", () => {
     expect(cambio).toHaveBeenCalledTimes(2);
     expect(cambio.mock.calls[1]?.[0]).toEqual(expect.arrayContaining([expect.objectContaining({ id: 1, suspendida: true })]));
     expect(notificar).toHaveBeenLastCalledWith("exito", expect.any(String));
+  });
+
+  it("completar una marca pendiente cambia su estado a completo y deja visibles solo los pendientes restantes", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 9, 27));
+    const notificar = vi.fn();
+    function Pantalla() {
+      const [asistencias, setAsistencias] = useState(ASISTENCIAS);
+      return <Asistencias fichas={FICHAS} asistencias={asistencias} setAsistencias={setAsistencias} correcciones={[]} setCorrecciones={() => {}} gerente="Roberto Sosa" notificar={notificar} />;
+    }
+    render(<Pantalla />);
+    fireEvent.click(screen.getByRole("button", { name: "Consultar" }));
+    avanzar();
+    fireEvent.click(screen.getByRole("button", { name: "Completar registro del 15/10/2026 07:58" }));
+    fireEvent.change(screen.getByLabelText(/^Hora de salida/), { target: { value: "14:00" } });
+    fireEvent.click(screen.getByRole("button", { name: "Confirmar" }));
+    avanzar();
+    expect(screen.getByRole("alert").textContent).toContain("No se pudo completar el registro");
+    expect(screen.getByLabelText(/^Hora de salida/)).toHaveValue("14:00");
+    fireEvent.click(screen.getByRole("button", { name: "Confirmar" }));
+    avanzar();
+
+    const fila = screen.getByText("07:58").closest("tr");
+    if (!fila) throw new Error("No se encontró la fila de la asistencia completada");
+    expect(within(fila).getByText("Completo")).toBeTruthy();
+    expect(screen.getByText("1 registro incompleto")).toBeTruthy();
+    expect(notificar).toHaveBeenLastCalledWith("exito", "El registro quedó completo", expect.stringContaining("El estado cambió a Completo."));
   });
 });

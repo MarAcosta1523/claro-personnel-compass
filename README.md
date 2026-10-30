@@ -1,11 +1,11 @@
 # Claro Personnel Compass
 
-Guiate por el brief adjunto. Por ahora necesito diseño de pantallas, no una app funcional: diseñá solo la vista para el rol Personal, con el inicio de sesión como puerta de entrada (sección 3.1 y 3.2 del brief, y las secciones 1, 2 y 4). Usá datos de ejemplo simulados, sin backend todavía. Que sea intuitivo y que facilite el aprendizaje de uso para los usuarios de esta interfaz.
+Tomá como referencia funcional y visual el documento «Punto de la Suerte - Fase de Elaboración - Grupo 10 (3)» para las pantallas de Personal y Gerente. GESPA se mantiene como prototipo en memoria, sin backend ni persistencia. Usá datos de ejemplo y una interfaz intuitiva que facilite el aprendizaje de uso.
 
 Aplicá estas correcciones:
 - Íconos: tomá los íconos adjuntos como referencia y redibujalos como un set coherente, de trazo parejo, que acompañe los botones grandes. Modificar: lápiz. Historial: reloj con flecha. Suspender: símbolo de pausa o candado. Fichas de personal: persona con carpeta. No uses papelera en ningún lado, porque nunca se elimina una cuenta, solo se suspende.
 - Logo: usá el logo adjunto en la barra superior y en el inicio de sesión. Generá una versión con fondo transparente para usarla sobre la barra.
-- Colores: quedan pendientes para revisar con los prototipos. Usá una paleta neutra provisoria, sin definir todavía el color institucional ni el uso del verde.
+- Colores: tomá como guía los prototipos del documento: superficies neutras, encabezados y acciones principales oscuros, verde para éxito y estados correctos, ámbar para avisos y rojo para errores. Mantené el contraste accesible.
 
 Entregá los estados normal, error, éxito y vacío donde corresponda, con el texto en español rioplatense y mínimo 14 px en el cuerpo.
 

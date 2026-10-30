@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { ahoraIso, analizar, fmtHoras, isoAFecha, type Asistencia, type Correccion, type Ficha, type Tipo } from "../data";
-import { IconAlerta, IconCalendario, IconConsultar, IconEntrada, IconHistorial, IconModificar, IconSalida, IconSuspender } from "../icons";
+import { IconAlerta, IconCalendario, IconCheck, IconConsultar, IconEntrada, IconHistorial, IconModificar, IconSalida, IconSuspender } from "../icons";
 import { Aviso, Boton, Campo, Dialogo, Encabezado, Etiqueta, PieAcciones, Select, Spinner, Vacio, inputG, tdCls, thCls } from "./ui";
 import type { Notificar } from "./PanelGerente";
 import { createAttemptTracker } from "../prototype";
@@ -58,9 +58,17 @@ export function Asistencias({ fichas, asistencias, setAsistencias, correcciones,
       for (const [k, t] of campos) {
         if (editar[k] !== nuevo[k]) cambios.push({ id: Date.now() + cambios.length, asistenciaId: editar.id, dato: t, anterior: String(editar[k] ?? ""), nuevo: String(nuevo[k] ?? ""), cuando, gerente });
       }
-      setAsistencias(asistencias.map((a) => (a.id === editar.id ? nuevo : a)));
+      const actualizadas = asistencias.map((a) => (a.id === editar.id ? nuevo : a));
+      setAsistencias(actualizadas);
       setCorrecciones([...cambios, ...correcciones]);
-      notificar("exito", "La asistencia fue modificada", "Se guardaron los cambios.");
+      const sigueIncompleta = analizar(actualizadas).incompletos.has(nuevo.id);
+      notificar(
+        "exito",
+        "La asistencia fue modificada",
+        sigueIncompleta
+          ? "Los datos son válidos y se guardaron. La jornada sigue incompleta porque falta la marca complementaria."
+          : "Los datos son válidos y la asistencia quedó completa.",
+      );
       setEditar(null);
     }, 700);
   };
@@ -75,7 +83,7 @@ export function Asistencias({ fichas, asistencias, setAsistencias, correcciones,
       const reg = { ...nuevo, id };
       setAsistencias([...asistencias, reg]);
       setCorrecciones([{ id: Date.now(), asistenciaId: id, dato: "Marca agregada", anterior: "", nuevo: `${reg.tipo === "entrada" ? "Entrada" : "Salida"} ${reg.hora}`, cuando: ahoraIso(), gerente }, ...correcciones]);
-      notificar("exito", "El registro quedó completo", `Se agregó la ${reg.tipo} de las ${reg.hora}.`);
+      notificar("exito", "El registro quedó completo", `Se agregó la ${reg.tipo} de las ${reg.hora}. El estado cambió a Completo.`);
       setCompletar(null);
     }, 700);
   };
@@ -120,6 +128,7 @@ export function Asistencias({ fichas, asistencias, setAsistencias, correcciones,
             {incompletos.size > 0 && (
               <Aviso tono="aviso" icono={<IconAlerta size={18} />}>
                 <b>{incompletos.size} {incompletos.size === 1 ? "registro incompleto" : "registros incompletos"}</b>
+                <p className="mt-1">Completá la marca faltante para que cada jornada pase al estado Completo.</p>
               </Aviso>
             )}
             <div className="max-h-[400px] overflow-auto rounded-xl border-2 bg-card">
@@ -138,7 +147,7 @@ export function Asistencias({ fichas, asistencias, setAsistencias, correcciones,
                         <td className={cn(tdCls, "no-underline")}>
                           {r.suspendida ? <Etiqueta tono="suspendido" icono={<IconSuspender size={14} />}>Suspendido</Etiqueta>
                             : inc ? <Etiqueta tono="aviso" icono={<IconAlerta size={14} />}>Incompleto</Etiqueta>
-                            : <Etiqueta tono="neutro">Completo</Etiqueta>}
+                            : <Etiqueta tono="activo" icono={<IconCheck size={14} />}>Completo</Etiqueta>}
                         </td>
                         <td className={cn(tdCls, "text-right")}>
                           <div className="inline-flex gap-1">
