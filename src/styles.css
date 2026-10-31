@@ -4,7 +4,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Neutral surfaces with the dark and green accents used by the GESPA prototypes. */
+/* Light, low-glare surfaces with clear green, blue, and warm status accents. */
 
 @theme inline {
   --font-sans: "Atkinson Hyperlegible", system-ui, sans-serif;
@@ -40,29 +40,29 @@
 
 :root {
   --radius: 0.5rem;
-  --background: oklch(0.963 0.002 145);
-  --foreground: oklch(0.17 0.006 145);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.17 0.006 145);
-  --primary: oklch(0.16 0.006 145);
+  --background: oklch(0.975 0.012 155);
+  --foreground: oklch(0.22 0.025 160);
+  --card: oklch(0.998 0.006 100);
+  --card-foreground: oklch(0.22 0.025 160);
+  --primary: oklch(0.4 0.105 158);
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.928 0.003 145);
-  --secondary-foreground: oklch(0.24 0.008 145);
-  --muted: oklch(0.948 0.003 145);
-  --muted-foreground: oklch(0.44 0.008 145);
-  --accent: oklch(0.92 0.035 145);
-  --accent-foreground: oklch(0.23 0.035 145);
-  --destructive: oklch(0.553 0.142 32);
-  --destructive-soft: oklch(0.963 0.019 32);
-  --success: oklch(0.48 0.16 145);
-  --success-soft: oklch(0.952 0.035 145);
-  --warning: oklch(0.54 0.112 73);
-  --warning-soft: oklch(0.959 0.035 80);
-  --border: oklch(0.85 0.004 145);
-  --input: oklch(0.72 0.006 145);
-  --ring: oklch(0.55 0.14 145);
-  --topbar: oklch(0.14 0.006 145);
-  --topbar-foreground: oklch(0.97 0 0);
+  --secondary: oklch(0.94 0.025 218);
+  --secondary-foreground: oklch(0.29 0.045 220);
+  --muted: oklch(0.95 0.014 160);
+  --muted-foreground: oklch(0.43 0.025 165);
+  --accent: oklch(0.93 0.05 151);
+  --accent-foreground: oklch(0.25 0.06 158);
+  --destructive: oklch(0.5 0.16 25);
+  --destructive-soft: oklch(0.96 0.025 25);
+  --success: oklch(0.45 0.13 155);
+  --success-soft: oklch(0.95 0.04 150);
+  --warning: oklch(0.53 0.12 72);
+  --warning-soft: oklch(0.96 0.045 83);
+  --border: oklch(0.87 0.02 158);
+  --input: oklch(0.76 0.025 158);
+  --ring: oklch(0.52 0.13 158);
+  --topbar: oklch(0.93 0.045 158);
+  --topbar-foreground: oklch(0.24 0.055 158);
 }
 
 @layer base {

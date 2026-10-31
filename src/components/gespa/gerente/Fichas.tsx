@@ -32,16 +32,16 @@ export function Fichas({ fichas, setFichas, notificar }: { fichas: Ficha[]; setF
     setProcesando(true);
     setTimeout(() => {
       setProcesando(false);
-      if (fallar(modo.t)) { setErrorOperacion("No se pudo guardar la ficha. Intentá de nuevo."); return; }
+      if (fallar(modo.t)) { setErrorOperacion("No se pudieron guardar los datos de Personal. Intentá de nuevo."); return; }
       if (modo.t === "nuevo") {
         const n: Ficha = { id: Date.now(), ...d, estado: "activa" };
         setFichas([n, ...fichas]);
         setModo({ t: "ver", id: n.id });
-        notificar("exito", "La ficha fue registrada", `${n.nombre} ${n.apellido}.`);
+        notificar("exito", "Personal registrado", `${n.nombre} ${n.apellido}.`);
       } else if (modo.t === "editar") {
         setFichas(fichas.map((f) => (f.id === modo.id ? { ...f, ...d } : f)));
         setModo({ t: "ver", id: modo.id });
-        notificar("exito", "La ficha fue modificada", `Se guardaron los cambios de ${d.nombre} ${d.apellido}.`);
+        notificar("exito", "Datos de Personal modificados", `Se guardaron los cambios de ${d.nombre} ${d.apellido}.`);
       }
     }, 700);
   };
@@ -52,9 +52,9 @@ export function Fichas({ fichas, setFichas, notificar }: { fichas: Ficha[]; setF
     setProcesando(true);
     setTimeout(() => {
       setProcesando(false);
-      if (fallar("suspender")) { setErrorOperacion("No se pudo suspender la ficha. Intentá de nuevo."); return; }
+      if (fallar("suspender")) { setErrorOperacion("No se pudo suspender a esta persona. Intentá de nuevo."); return; }
       setFichas(fichas.map((f) => (f.id === suspender.id ? { ...f, estado: "suspendida" } : f)));
-      notificar("exito", "La ficha fue suspendida", `${suspender.nombre} ${suspender.apellido}.`);
+      notificar("exito", "Personal suspendido", `${suspender.nombre} ${suspender.apellido}.`);
       setSuspender(null);
     }, 700);
   };
@@ -67,8 +67,8 @@ export function Fichas({ fichas, setFichas, notificar }: { fichas: Ficha[]; setF
     <>
       <Encabezado
         icono={<IconFicha size={28} />}
-        titulo="Gestionar fichas de personal"
-        acciones={<Boton variante="primario" icono={<IconMas size={22} />} onClick={() => { setErrorOperacion(null); setModo({ t: "nuevo" }); }}>Registrar ficha de personal</Boton>}
+        titulo="Gestionar Personal"
+        acciones={<Boton variante="primario" icono={<IconMas size={22} />} onClick={() => { setErrorOperacion(null); setModo({ t: "nuevo" }); }}>Registrar Personal</Boton>}
       />
 
       <div className="grid grid-cols-[minmax(0,1fr)_380px] gap-6">
@@ -77,21 +77,22 @@ export function Fichas({ fichas, setFichas, notificar }: { fichas: Ficha[]; setF
             <Buscador valor={q} onCambio={setQ} placeholder="Buscar por nombre, apellido o DNI" />
             <Select valor={fEstado} onCambio={setFEstado} opciones={[{ v: "todos", t: "Todos los estados" }, { v: "activa", t: "Activas" }, { v: "suspendida", t: "Suspendidas" }]} />
           </div>
-          <p className="text-sm text-muted-foreground">{lista.length} de {fichas.length} fichas</p>
+          <p className="text-sm text-muted-foreground">{lista.length} de {fichas.length} personas</p>
           {lista.length === 0 ? (
             <Vacio icono={<IconFicha size={40} />} titulo="No se encontró al personal solicitado" detalle="Probá con otro nombre o DNI, o cambiá el filtro." accion={<Boton onClick={() => { setQ(""); setFEstado("todos"); }}>Limpiar búsqueda</Boton>} />
           ) : (
             <div className="max-h-[440px] overflow-auto rounded-xl border-2 bg-card">
               <table className="w-full">
-                <thead><tr><th className={thCls}>Nombre y apellido</th><th className={thCls}>DNI</th><th className={thCls}>Estado</th><th className={thCls}>Acciones</th></tr></thead>
+                <thead><tr><th className={thCls}>Legajo</th><th className={thCls}>Nombre y apellido</th><th className={thCls}>DNI</th><th className={thCls}>Estado</th><th className={thCls}>Acciones</th></tr></thead>
                 <tbody>
                   {lista.map((f) => (
                     <tr key={f.id} onClick={() => { setErrorOperacion(null); setModo({ t: "ver", id: f.id }); }} aria-selected={sel?.id === f.id}
                       className={cn("cursor-pointer border-t", sel?.id === f.id ? "bg-accent outline-2 -outline-offset-2 outline-primary" : "hover:bg-muted", f.estado === "suspendida" && "text-muted-foreground")}>
+                      <td className={cn(tdCls, "font-mono font-bold")}>#{f.id}</td>
                       <td className={cn(tdCls, "font-bold")}>{f.nombre} {f.apellido}</td>
                       <td className={cn(tdCls, "font-mono")}>{f.dni}</td>
                       <td className={tdCls}>{estadoTag(f)}</td>
-                      <td className={tdCls}><div className="flex gap-1" onClick={(e) => e.stopPropagation()}><Boton title="Consultar" aria-label={`Consultar ficha ${f.nombre} ${f.apellido}`} className="h-10 w-10 px-0" onClick={() => { setErrorOperacion(null); setModo({ t: "ver", id: f.id }); }}><IconConsultar size={18} /></Boton><Boton title="Modificar" aria-label={`Modificar ficha ${f.nombre} ${f.apellido}`} className="h-10 w-10 px-0" onClick={() => { setErrorOperacion(null); setModo({ t: "editar", id: f.id }); }}><IconModificar size={18} /></Boton><Boton variante="peligro" title="Suspender" aria-label={`Suspender ficha ${f.nombre} ${f.apellido}`} className="h-10 w-10 px-0" onClick={() => { setErrorOperacion(null); if (f.estado === "suspendida") return notificar("error", "El personal ya se encuentra suspendido"); setSuspender(f); }}><IconSuspender size={18} /></Boton></div></td>
+                      <td className={tdCls}><div className="flex gap-1" onClick={(e) => e.stopPropagation()}><Boton title="Consultar" aria-label={`Consultar datos de ${f.nombre} ${f.apellido}`} className="h-10 w-10 px-0" onClick={() => { setErrorOperacion(null); setModo({ t: "ver", id: f.id }); }}><IconConsultar size={18} /></Boton><Boton title="Modificar" aria-label={`Modificar datos de ${f.nombre} ${f.apellido}`} className="h-10 w-10 px-0" onClick={() => { setErrorOperacion(null); setModo({ t: "editar", id: f.id }); }}><IconModificar size={18} /></Boton><Boton variante="peligro" title="Suspender" aria-label={`Suspender a ${f.nombre} ${f.apellido}`} className="h-10 w-10 px-0" onClick={() => { setErrorOperacion(null); if (f.estado === "suspendida") return notificar("error", "El personal ya se encuentra suspendido"); setSuspender(f); }}><IconSuspender size={18} /></Boton></div></td>
                     </tr>
                   ))}
                 </tbody>
@@ -102,11 +103,11 @@ export function Fichas({ fichas, setFichas, notificar }: { fichas: Ficha[]; setF
 
         <aside className="rounded-xl border-2 bg-card p-5">
           {errorOperacion && !suspender && <div className="mb-4"><Mensaje tipo="error" titulo={errorOperacion} onCerrar={() => setErrorOperacion(null)} /></div>}
-          {modo.t === "nada" && <Vacio icono={<IconFicha size={40} />} titulo="Elegí una ficha"  />}
+          {modo.t === "nada" && <Vacio icono={<IconFicha size={40} />} titulo="Elegí una persona"  />}
           {modo.t === "ver" && sel && (
             <div className="space-y-5">
               <div>
-                <p className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Consultar ficha</p>
+                <p className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Consultar Personal</p>
                 <h2 className="mt-1 text-2xl font-bold">{sel.nombre} {sel.apellido}</h2>
               </div>
               <dl className="space-y-3 text-base">
@@ -134,11 +135,11 @@ export function Fichas({ fichas, setFichas, notificar }: { fichas: Ficha[]; setF
         </aside>
       </div>
 
-      <Dialogo abierto={!!suspender} titulo="¿Suspender esta ficha?" icono={<IconSuspender size={24} className="text-destructive" />} onCerrar={() => { if (!procesando) { setErrorOperacion(null); setSuspender(null); } }}>
+      <Dialogo abierto={!!suspender} titulo="¿Suspender a esta persona?" icono={<IconSuspender size={24} className="text-destructive" />} onCerrar={() => { if (!procesando) { setErrorOperacion(null); setSuspender(null); } }}>
         {suspender && (
           <div className="space-y-4">
             {errorOperacion && <Mensaje tipo="error" titulo={errorOperacion} onCerrar={() => setErrorOperacion(null)} />}
-            <p className="text-base">Vas a suspender la ficha de <b>{suspender.nombre} {suspender.apellido}</b> (DNI {suspender.dni}).</p>
+            <p className="text-base">Vas a suspender a <b>{suspender.nombre} {suspender.apellido}</b> (DNI {suspender.dni}).</p>
             <PieAcciones onCancelar={() => { setErrorOperacion(null); setSuspender(null); }} onConfirmar={confirmarSuspension} textoConfirmar="Sí, suspender" peligro cargando={procesando} />
           </div>
         )}
@@ -165,11 +166,11 @@ function FormFicha({ inicial, editando, dnisOcupados, procesando, onCancelar, on
   return (
     <div className="space-y-4">
       <div>
-        <p className="text-sm font-bold uppercase tracking-wide text-muted-foreground">{editando ? "Modificar ficha" : "Registrar ficha"}</p>
+        <p className="text-sm font-bold uppercase tracking-wide text-muted-foreground">{editando ? "Modificar datos de Personal" : "Registrar Personal"}</p>
 
       </div>
       {Object.values(e).some(Boolean) && (
-        <div role="alert" className="flex items-center gap-2 rounded-lg border-2 border-destructive bg-destructive-soft px-3 py-2 text-[15px] font-bold text-destructive"><IconAlerta size={20} /> No se pudo guardar la ficha. Revisá los campos marcados.</div>
+        <div role="alert" className="flex items-center gap-2 rounded-lg border-2 border-destructive bg-destructive-soft px-3 py-2 text-[15px] font-bold text-destructive"><IconAlerta size={20} /> No se pudieron guardar los datos. Revisá los campos marcados.</div>
       )}
       <fieldset disabled={procesando} className="space-y-4">
         <div className="grid grid-cols-2 gap-3">

@@ -59,6 +59,8 @@ export function Login({ onIngresar, usuarios = USUARIOS, fichas = FICHAS }: { on
         <div className="my-auto py-12">
           <img src={logo} alt="Logo de Punto de la Suerte" className="mb-8 h-40 w-auto" />
           <h1 className="text-5xl font-bold tracking-tight">GESPA</h1>
+          <p className="mt-5 text-2xl font-bold">¡Te damos la bienvenida!</p>
+          <p className="mt-2 max-w-md text-lg leading-relaxed opacity-80">Nos alegra acompañarte en una nueva jornada en Punto de la Suerte.</p>
           
         </div>
         

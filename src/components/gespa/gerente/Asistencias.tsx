@@ -108,7 +108,7 @@ export function Asistencias({ fichas, asistencias, setAsistencias, correcciones,
 
       <div className="mb-5 flex flex-wrap items-end gap-3 rounded-xl border-2 bg-card p-4">
         <Campo id="a-persona" label="Persona">
-          <Select id="a-persona" valor={persona} onCambio={setPersona} ancho="w-64" opciones={[{ v: "todas", t: "Todas las fichas" }, ...fichas.map((f) => ({ v: String(f.id), t: `${f.nombre} ${f.apellido}${f.estado === "suspendida" ? " (suspendida)" : ""}` }))]} />
+          <Select id="a-persona" valor={persona} onCambio={setPersona} ancho="w-64" opciones={[{ v: "todas", t: "Todo el personal" }, ...fichas.map((f) => ({ v: String(f.id), t: `Legajo #${f.id} · ${f.nombre} ${f.apellido}${f.estado === "suspendida" ? " (suspendida)" : ""}` }))]} />
         </Campo>
         <Campo id="a-desde" label="Desde"><input id="a-desde" type="date" value={desde} onChange={(e) => setDesde(e.target.value)} className={cn(inputG(!!errorFiltro), "w-44")} /></Campo>
         <Campo id="a-hasta" label="Hasta"><input id="a-hasta" type="date" value={hasta} onChange={(e) => setHasta(e.target.value)} className={cn(inputG(!!errorFiltro), "w-44")} /></Campo>
@@ -121,7 +121,7 @@ export function Asistencias({ fichas, asistencias, setAsistencias, correcciones,
       ) : !consulta ? (
         <Vacio icono={<IconConsultar size={40} />} titulo="Elegí una persona y un período"  />
       ) : regs.length === 0 ? (
-        <Vacio icono={<IconCalendario size={40} />} titulo="No se encontraron registros para la persona y el período seleccionados" detalle="Probá con otro período o con «Todas las fichas»." />
+        <Vacio icono={<IconCalendario size={40} />} titulo="No se encontraron registros para la persona y el período seleccionados" detalle="Probá con otro período o con «Todo el personal»." />
       ) : (
         <div className="grid grid-cols-[1fr_220px] gap-5">
           <div className="min-w-0 space-y-3">
@@ -167,7 +167,7 @@ export function Asistencias({ fichas, asistencias, setAsistencias, correcciones,
             <div className="rounded-xl bg-primary p-5 text-primary-foreground">
               <p className="text-[15px] opacity-80">Total de horas trabajadas</p>
               <p className="mt-1 font-mono text-3xl font-bold">{fmtHoras(minutos)}</p>
-              <p className="mt-2 text-sm opacity-80">{isoAFecha(consulta.desde)} al {isoAFecha(consulta.hasta)} · {consulta.persona === "todas" ? "Todas las fichas" : nombre(Number(consulta.persona))}</p>
+              <p className="mt-2 text-sm opacity-80">{isoAFecha(consulta.desde)} al {isoAFecha(consulta.hasta)} · {consulta.persona === "todas" ? "Todo el personal" : `Legajo #${consulta.persona} · ${nombre(Number(consulta.persona))}`}</p>
             </div>
             
             <Boton className="w-full" icono={<IconHistorial size={20} />} onClick={() => setVerHistorial(true)}>Ver historial de correcciones</Boton>

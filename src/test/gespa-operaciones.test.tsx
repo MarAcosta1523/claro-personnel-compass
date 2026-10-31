@@ -22,7 +22,7 @@ describe("Operaciones de gestión", () => {
         : <Fichas fichas={fichas} setFichas={(f) => { cambio(f); setFichas(f); }} notificar={notificar} />;
     }
     render(<Pantalla />);
-    fireEvent.click(screen.getByRole("button", { name: entidad === "usuarios" ? "Registrar usuario" : "Registrar ficha de personal" }));
+    fireEvent.click(screen.getByRole("button", { name: entidad === "usuarios" ? "Registrar usuario" : "Registrar Personal" }));
     fireEvent.click(screen.getByRole("button", { name: "Confirmar" }));
     expect(cambio).not.toHaveBeenCalled();
     fireEvent.change(screen.getByLabelText(/^Nombre/), { target: { value: "Elena" } });

@@ -15,7 +15,7 @@ type Seccion = "inicio" | "usuarios" | "fichas" | "asistencias" | "copias";
 
 const MENU: { id: Seccion; t: string; icono: (s: number) => ReactNode }[] = [
   { id: "usuarios", t: "Gestionar usuarios", icono: (s) => <IconPerfil size={s} /> },
-  { id: "fichas", t: "Gestionar fichas de personal", icono: (s) => <IconFicha size={s} /> },
+  { id: "fichas", t: "Gestionar Personal", icono: (s) => <IconFicha size={s} /> },
   { id: "asistencias", t: "Gestionar asistencias", icono: (s) => <IconCalendario size={s} /> },
   { id: "copias", t: "Copias de seguridad", icono: (s) => <IconCopia size={s} /> },
 ];

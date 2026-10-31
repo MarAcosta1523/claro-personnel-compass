@@ -58,11 +58,14 @@ describe("Asistencia vinculada a la cuenta Personal", () => {
     ingresar("30111222", "Suerte2026!");
     expect(screen.queryByLabelText("DNI")).toBeNull();
     expect(screen.queryByLabelText("Persona")).toBeNull();
+    expect(screen.getByText("#1")).toBeTruthy();
     fireEvent.click(screen.getByRole("radio", { name: /Registrar entrada/ }));
     fireEvent.change(screen.getByLabelText(/Observación/), { target: { value: "Marca de Lucía" } });
     fireEvent.click(screen.getByRole("button", { name: "Confirmar" }));
     act(() => vi.advanceTimersByTime(900));
-    expect(screen.getByRole("alert").textContent).toContain("No se pudo registrar");
+    expect(screen.getByRole("status").textContent).toContain("Asistencia registrada con éxito");
+    fireEvent.click(screen.getByRole("radio", { name: /Registrar salida/ }));
+    fireEvent.change(screen.getByLabelText(/Observación/), { target: { value: "Fin de jornada" } });
     fireEvent.click(screen.getByRole("button", { name: "Confirmar" }));
     act(() => vi.advanceTimersByTime(900));
     expect(screen.getByRole("status").textContent).toContain("Asistencia registrada con éxito");
@@ -75,6 +78,7 @@ describe("Asistencia vinculada a la cuenta Personal", () => {
     fireEvent.click(screen.getByRole("button", { name: "Consultar" }));
     act(() => vi.advanceTimersByTime(700));
     expect(screen.getByRole("cell", { name: "Marca de Lucía" })).toBeTruthy();
+    expect(screen.getByRole("cell", { name: "Fin de jornada" })).toBeTruthy();
     fireEvent.change(screen.getByLabelText("Persona"), { target: { value: "2" } });
     fireEvent.click(screen.getByRole("button", { name: "Consultar" }));
     act(() => vi.advanceTimersByTime(700));

@@ -6,11 +6,11 @@ import { IconEntrada, IconHistorial, IconNota, IconPerfil, IconSalida } from "./
 import { Mensaje } from "./Mensaje";
 import { cn } from "@/lib/utils";
 import { Boton } from "./gerente/ui";
-import { createAttemptTracker } from "./prototype";
 
 type Resultado = { tipo: "exito" | "error"; titulo: string; detalle: string } | null;
 
 export function InicioPersonal({ cuenta, fichas, asistencias, onRegistrar, onSalir }: { cuenta: Cuenta; fichas: Ficha[]; asistencias: Asistencia[]; onRegistrar: (r: Asistencia) => void; onSalir: () => void }) {
+  const legajo = fichaVinculada(cuenta, fichas);
   const [ahora, setAhora] = useState<Date | null>(null);
   const [tipo, setTipo] = useState<Tipo | null>(null);
   const [obs, setObs] = useState("");
@@ -21,7 +21,6 @@ export function InicioPersonal({ cuenta, fichas, asistencias, onRegistrar, onSal
   });
   const [resultado, setResultado] = useState<Resultado>(null);
   const [procesando, setProcesando] = useState(false);
-  const [fallar] = useState(createAttemptTracker);
 
   useEffect(() => {
     setAhora(new Date());
@@ -52,10 +51,6 @@ export function InicioPersonal({ cuenta, fichas, asistencias, onRegistrar, onSal
       }
       if (!ultimo && tipo === "salida") {
         setResultado({ tipo: "error", titulo: "No se pudo registrar", detalle: "No se pudo registrar la salida. Revisá el registro anterior." });
-        return;
-      }
-      if (fallar(tipo)) {
-        setResultado({ tipo: "error", titulo: `No se pudo registrar la ${tipo}`, detalle: "Intentá de nuevo." });
         return;
       }
       const nuevo = { tipo, fecha: new Date() };
@@ -114,6 +109,10 @@ export function InicioPersonal({ cuenta, fichas, asistencias, onRegistrar, onSal
             <legend className="mb-3 flex items-center gap-2 text-base font-bold">
               Asistencia
             </legend>
+            <p className="w-fit rounded-md bg-accent px-3 py-2 text-base text-accent-foreground">
+              Legajo asociado: <span className="font-mono font-bold">{legajo ? `#${legajo.id}` : "No disponible"}</span>
+              {legajo && <span className="ml-2">{legajo.nombre} {legajo.apellido}</span>}
+            </p>
             <div className="grid grid-cols-2 gap-4" role="radiogroup" aria-label="Tipo de registro">
               <BotonGrande sel={tipo === "entrada"} onClick={() => setTipo("entrada")} icono={<IconEntrada size={40} />} titulo="Registrar entrada" sub="Cuando llegás" />
               <BotonGrande sel={tipo === "salida"} onClick={() => setTipo("salida")} icono={<IconSalida size={40} />} titulo="Registrar salida" sub="Cuando te vas" />
