@@ -9,13 +9,27 @@ import { Boton } from "./gerente/ui";
 
 type Resultado = { tipo: "exito" | "error"; titulo: string; detalle: string } | null;
 
-export function InicioPersonal({ cuenta, fichas, asistencias, onRegistrar, onSalir }: { cuenta: Cuenta; fichas: Ficha[]; asistencias: Asistencia[]; onRegistrar: (r: Asistencia) => void; onSalir: () => void }) {
+export function InicioPersonal({
+  cuenta,
+  fichas,
+  asistencias,
+  onRegistrar,
+  onSalir,
+}: {
+  cuenta: Cuenta;
+  fichas: Ficha[];
+  asistencias: Asistencia[];
+  onRegistrar: (r: Asistencia) => void;
+  onSalir: () => void;
+}) {
   const legajo = fichaVinculada(cuenta, fichas);
   const [ahora, setAhora] = useState<Date | null>(null);
   const [tipo, setTipo] = useState<Tipo | null>(null);
   const [obs, setObs] = useState("");
   const [ultimo, setUltimo] = useState<Registro | null>(() => {
-    const r = asistencias.filter((a) => a.fichaId === cuenta.fichaId && !a.suspendida).sort((a, b) => `${b.fecha} ${b.hora}`.localeCompare(`${a.fecha} ${a.hora}`))[0];
+    const r = asistencias
+      .filter((a) => a.fichaId === cuenta.fichaId && !a.suspendida)
+      .sort((a, b) => `${b.fecha} ${b.hora}`.localeCompare(`${a.fecha} ${a.hora}`))[0];
     const guardado = r ? { tipo: r.tipo, fecha: new Date(`${r.fecha}T${r.hora}:00`) } : null;
     return guardado && (!cuenta.ultimo || guardado.fecha > cuenta.ultimo.fecha) ? guardado : cuenta.ultimo;
   });
@@ -68,7 +82,7 @@ export function InicioPersonal({ cuenta, fichas, asistencias, onRegistrar, onSal
   };
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-background">
       <header className="flex h-16 items-center justify-between bg-topbar px-8 text-topbar-foreground">
         <div className="flex items-center gap-3">
           <img src={logo} alt="Punto de la Suerte" className="h-10 w-auto" />
@@ -80,7 +94,9 @@ export function InicioPersonal({ cuenta, fichas, asistencias, onRegistrar, onSal
             <IconPerfil size={22} />
             <div className="leading-tight">
               <p className="text-base font-bold">{cuenta.nombre}</p>
-              <p className="text-sm opacity-70">Personal</p>
+              <p className="text-sm opacity-70">
+                Personal · Legajo <span className="font-mono font-bold">#{legajo ? legajo.id : cuenta.fichaId ?? "No disponible"}</span>
+              </p>
             </div>
           </div>
           <Boton
@@ -103,47 +119,106 @@ export function InicioPersonal({ cuenta, fichas, asistencias, onRegistrar, onSal
             <p className="mt-1 text-xl first-letter:uppercase">{ahora ? fmtFecha(ahora) : "\u00a0"}</p>
           </div>
 
-          {resultado && <Mensaje tipo={resultado.tipo} titulo={resultado.titulo} detalle={resultado.detalle} onCerrar={() => setResultado(null)} />}
+          {resultado && (
+            <Mensaje tipo={resultado.tipo} titulo={resultado.titulo} detalle={resultado.detalle} onCerrar={() => setResultado(null)} />
+          )}
 
-          <fieldset disabled={procesando} className="space-y-5">
-            <legend className="mb-3 flex items-center gap-2 text-base font-bold">
-              Asistencia
+          <fieldset disabled={procesando} className="space-y-6">
+            <legend className="mb-1 flex items-center gap-2 text-lg font-bold">
+              Registro de Asistencia
             </legend>
-            <p className="w-fit rounded-md bg-accent px-3 py-2 text-base text-accent-foreground">
-              Legajo asociado: <span className="font-mono font-bold">{legajo ? `#${legajo.id}` : "No disponible"}</span>
-              {legajo && <span className="ml-2">{legajo.nombre} {legajo.apellido}</span>}
+            <p className="text-sm text-muted-foreground">
+              Paso 1: Seleccioná si vas a registrar tu entrada o tu salida para iniciar la vinculación automática con tu legajo.
             </p>
-            <div className="grid grid-cols-2 gap-4" role="radiogroup" aria-label="Tipo de registro">
-              <BotonGrande sel={tipo === "entrada"} onClick={() => setTipo("entrada")} icono={<IconEntrada size={40} />} titulo="Registrar entrada" sub="Cuando llegás" />
-              <BotonGrande sel={tipo === "salida"} onClick={() => setTipo("salida")} icono={<IconSalida size={40} />} titulo="Registrar salida" sub="Cuando te vas" />
-            </div>
 
-            <div className="space-y-2">
-              <label htmlFor="obs" className="flex items-center gap-2 text-base font-bold">
-                <IconNota size={20} /> Observación <span className="font-normal text-muted-foreground">(opcional)</span>
-              </label>
-              <input
-                id="obs"
-                value={obs}
-                maxLength={120}
-                onChange={(e) => setObs(e.target.value)}
-                placeholder="Ej.: llegué tarde por un corte de colectivo"
-                className="h-12 w-full rounded-lg border-2 border-input bg-card px-4 text-base outline-none focus:border-ring focus:ring-3 focus:ring-ring/20"
+            <div className="grid grid-cols-2 gap-4" role="radiogroup" aria-label="Tipo de registro">
+              <BotonGrande
+                sel={tipo === "entrada"}
+                onClick={() => setTipo("entrada")}
+                icono={<IconEntrada size={40} />}
+                titulo="Registrar entrada"
+                sub="Al iniciar tu jornada"
+              />
+              <BotonGrande
+                sel={tipo === "salida"}
+                onClick={() => setTipo("salida")}
+                icono={<IconSalida size={40} />}
+                titulo="Registrar salida"
+                sub="Al finalizar tu jornada"
               />
             </div>
 
-            <div className="flex items-center gap-4">
-              <Boton
-                variante="primario"
-                onClick={confirmar}
-                disabled={!tipo || procesando}
-                className="flex h-14 min-w-64 items-center justify-center gap-2 rounded-lg bg-primary px-8 text-lg font-bold text-primary-foreground hover:opacity-90 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-40"
-              >
+            {/* Proceso automático de vinculación al seleccionar una opción */}
+            {tipo && (
+              <div className="space-y-5 rounded-xl border-2 border-border bg-card p-5 shadow-sm transition-all animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="flex items-start gap-3 rounded-lg border-2 border-emerald-500/30 bg-emerald-500/10 p-4">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white font-bold text-sm">
+                    ✓
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
+                        Paso 2 · Vinculación automática confirmada
+                      </span>
+                    </div>
+                    {legajo ? (
+                      <>
+                        <p className="text-base font-semibold text-foreground">
+                          Cuenta asociada exitosamente a la ficha de Legajo #{legajo.id} ({legajo.nombre} {legajo.apellido})
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          DNI: {legajo.dni} · Cargo: {legajo.cargo} · El registro quedará formalmente asignado a tu legajo.
+                        </p>
+                      </>
+                    ) : (
+                      <p className="text-base font-semibold text-destructive">
+                        No se encontró un legajo asociado a tu cuenta de usuario. Consultá con el Gerente.
+                      </p>
+                    )}
+                  </div>
+                </div>
 
-                {procesando ? "Registrando…" : "Confirmar"}
-              </Boton>
+                {/* Paso 3: Observación opcional y Confirmación */}
+                <div className="space-y-4 pt-1">
+                  <div className="space-y-2">
+                    <label htmlFor="obs" className="flex items-center gap-2 text-base font-bold">
+                      <IconNota size={20} /> Paso 3 · Observación <span className="font-normal text-muted-foreground">(opcional)</span>
+                    </label>
+                    <input
+                      id="obs"
+                      value={obs}
+                      maxLength={120}
+                      onChange={(e) => setObs(e.target.value)}
+                      placeholder="Ej.: llegué tarde por un corte de colectivo, cambio de turno, etc."
+                      className="h-12 w-full rounded-lg border-2 border-input bg-background px-4 text-base outline-none focus:border-ring focus:ring-3 focus:ring-ring/20"
+                    />
+                  </div>
 
-            </div>
+                  <div className="flex items-center gap-4 pt-2">
+                    <Boton
+                      variante="primario"
+                      onClick={confirmar}
+                      disabled={!tipo || procesando || !legajo}
+                      className="flex h-14 min-w-64 items-center justify-center gap-2 rounded-lg bg-primary px-8 text-lg font-bold text-primary-foreground hover:opacity-90 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      {procesando ? "Registrando…" : "Confirmar"}
+                    </Boton>
+                    <Boton
+                      variante="fantasma"
+                      type="button"
+                      onClick={() => {
+                        setTipo(null);
+                        setObs("");
+                      }}
+                      disabled={procesando}
+                      className="h-14 px-5 text-base font-semibold text-muted-foreground hover:text-foreground"
+                    >
+                      Cancelar
+                    </Boton>
+                  </div>
+                </div>
+              </div>
+            )}
           </fieldset>
         </section>
 
@@ -161,7 +236,9 @@ export function InicioPersonal({ cuenta, fichas, asistencias, onRegistrar, onSal
                   </span>
                 </Fila>
                 <Fila k="Fecha">{fmtCorta(ultimo.fecha)}</Fila>
-                <Fila k="Hora"><span className="font-mono font-bold">{fmtHora(ultimo.fecha)}</span></Fila>
+                <Fila k="Hora">
+                  <span className="font-mono font-bold">{fmtHora(ultimo.fecha)}</span>
+                </Fila>
               </dl>
             ) : (
               <div className="mt-4 rounded-lg border-2 border-dashed p-4 text-center">
@@ -170,7 +247,6 @@ export function InicioPersonal({ cuenta, fichas, asistencias, onRegistrar, onSal
               </div>
             )}
           </div>
-
         </aside>
       </main>
     </div>
